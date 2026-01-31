@@ -1,1 +1,1071 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1" />
+  <title>Easy Gift — кейсы, профиль, 24ч</title>
 
+  <!-- Telegram Mini App SDK (если откроют в Telegram) -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+  <style>
+    :root{
+      --bg:#0f1720;
+      --text:#e7eef7;
+      --muted:#93a6bd;
+      --accent:#33a6ff;
+      --good:#17c964;
+      --warn:#f5a524;
+      --danger:#ff4d4d;
+      --radius:16px;
+
+      --itemW: 150px;
+      --itemH: 120px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      background:linear-gradient(180deg,#0b121a, #0f1720 40%, #0b121a);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color:var(--text);
+      padding:16px;
+    }
+    .app{max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:12px;}
+
+    .topbar{
+      background:rgba(255,255,255,0.04);
+      border:1px solid rgba(255,255,255,0.06);
+      border-radius:var(--radius);
+      padding:12px 14px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .title{display:flex;flex-direction:column;gap:2px;line-height:1.1;}
+    .title b{font-size:16px}
+    .title small{color:var(--muted)}
+
+    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end;}
+    .pill{
+      padding:8px 10px;
+      border-radius:999px;
+      background:rgba(255,255,255,0.05);
+      border:1px solid rgba(255,255,255,0.08);
+      display:flex;
+      align-items:center;
+      gap:8px;
+      white-space:nowrap;
+      font-weight:900;
+    }
+    .starImg{
+      width:18px;height:18px;object-fit:contain;display:block;
+      filter: drop-shadow(0 2px 6px rgba(0,0,0,.35));
+    }
+    .btn{
+      border:0;
+      border-radius:12px;
+      padding:10px 12px;
+      font-weight:900;
+      background:var(--accent);
+      color:#06121b;
+      cursor:pointer;
+      user-select:none;
+      touch-action:manipulation;
+    }
+    .btn:disabled{opacity:.55;cursor:not-allowed;}
+    .btn.secondary{
+      background:rgba(255,255,255,0.08);
+      color:var(--text);
+      border:1px solid rgba(255,255,255,0.12);
+    }
+    .btn.danger{
+      background:rgba(255,77,77,0.18);
+      color:var(--text);
+      border:1px solid rgba(255,77,77,0.35);
+    }
+
+    .tabs{
+      display:flex;gap:8px;flex-wrap:wrap;
+      background:rgba(255,255,255,0.04);
+      border:1px solid rgba(255,255,255,0.06);
+      border-radius:999px;
+      padding:6px;
+      width:fit-content;
+    }
+    .tab{
+      padding:9px 12px;
+      border-radius:999px;
+      cursor:pointer;
+      font-weight:900;
+      color:var(--muted);
+      user-select:none;
+    }
+    .tab.active{
+      background:rgba(51,166,255,0.18);
+      border:1px solid rgba(51,166,255,0.35);
+      color:var(--text);
+    }
+
+    .card{
+      background:rgba(255,255,255,0.04);
+      border:1px solid rgba(255,255,255,0.06);
+      border-radius:var(--radius);
+      padding:12px;
+    }
+    .card h3{
+      margin:0 0 10px 0;
+      font-size:14px;
+      color:var(--muted);
+      font-weight:900;
+      letter-spacing:.2px;
+      text-transform:uppercase;
+    }
+
+    /* Кейсы */
+    .casesRow{
+      display:flex;
+      gap:10px;
+      overflow:auto;
+      padding-bottom:6px;
+      -webkit-overflow-scrolling:touch;
+      scroll-snap-type:x mandatory;
+    }
+    .caseCard{
+      flex:0 0 240px;
+      scroll-snap-align:start;
+      border-radius:18px;
+      background:rgba(0,0,0,0.16);
+      border:1px solid rgba(255,255,255,0.10);
+      padding:12px;
+      display:flex;
+      gap:12px;
+      align-items:center;
+      cursor:pointer;
+      user-select:none;
+    }
+    .caseCard.active{
+      border-color:rgba(51,166,255,0.7);
+      box-shadow:0 0 0 4px rgba(51,166,255,0.10);
+    }
+    .caseArt{
+      width:64px;height:64px;
+      border-radius:16px;
+      background:rgba(255,255,255,0.06);
+      border:1px solid rgba(255,255,255,0.10);
+      display:grid;place-items:center;
+      font-size:28px;
+      flex:0 0 auto;
+    }
+    .caseInfo{min-width:0;display:flex;flex-direction:column;gap:4px;}
+    .caseName{font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .caseSub{color:var(--muted);font-size:12px;line-height:1.2;}
+    .priceLine{display:flex;align-items:center;gap:6px;font-weight:900;}
+    .priceLine small{color:var(--muted);font-weight:700}
+
+    /* Рулетка */
+    .rouletteWrap{display:flex;flex-direction:column;gap:10px;}
+    .window{
+      position:relative;
+      height: var(--itemH);
+      overflow:hidden;
+      border-radius:18px;
+      background:linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+      border:1px solid rgba(255,255,255,0.08);
+    }
+    .fadeLeft, .fadeRight{
+      position:absolute;top:0;bottom:0;width:44px;z-index:3;pointer-events:none;
+    }
+    .fadeLeft{left:0;background:linear-gradient(90deg, rgba(15,23,32,1), rgba(15,23,32,0));}
+    .fadeRight{right:0;background:linear-gradient(270deg, rgba(15,23,32,1), rgba(15,23,32,0));}
+    .centerLine{
+      position:absolute;top:0;bottom:0;left:50%;
+      width:2px;background:rgba(51,166,255,.35);z-index:2;
+    }
+    .pointer{
+      position:absolute;
+      left:50%;
+      top:6px;
+      transform:translateX(-50%);
+      width:0;height:0;
+      border-left:12px solid transparent;
+      border-right:12px solid transparent;
+      border-top:16px solid rgba(51,166,255,.95);
+      z-index:4;
+      filter:drop-shadow(0 6px 10px rgba(0,0,0,.35));
+    }
+    .track{
+      position:absolute;
+      top:0;left:0;height:100%;
+      display:flex;
+      will-change:transform;
+      transform:translateX(0px);
+      z-index:1;
+    }
+    .item{
+      width:var(--itemW);
+      height:var(--itemH);
+      padding:10px;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      align-items:center;
+      gap:8px;
+      border-right:1px solid rgba(255,255,255,0.06);
+      background:rgba(0,0,0,0.03);
+    }
+    .item:nth-child(2n){ background:rgba(255,255,255,0.02); }
+    .itemEmoji{
+      width:54px;height:54px;
+      border-radius:18px;
+      background:rgba(255,255,255,0.06);
+      border:1px solid rgba(255,255,255,0.10);
+      display:grid;place-items:center;
+      font-size:30px;
+    }
+    .itemName{
+      font-weight:900;
+      font-size:13px;
+      text-align:center;
+      line-height:1.15;
+      padding:0 4px;
+      display:-webkit-box;
+      -webkit-line-clamp:2;
+      -webkit-box-orient:vertical;
+      overflow:hidden;
+      min-height:30px;
+    }
+    .itemCost{
+      display:flex;align-items:center;gap:6px;
+      font-weight:900;
+    }
+    .badge{
+      font-size:12px;
+      color:var(--muted);
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,0.08);
+      background:rgba(255,255,255,0.04);
+    }
+    .controls{
+      display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:space-between;
+    }
+    .hint{color:var(--muted);font-size:12px;line-height:1.3;}
+    .result{
+      margin-top:10px;
+      padding:10px 12px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,0.10);
+      background:rgba(0,0,0,0.18);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .result b{font-size:14px}
+
+    /* Профиль */
+    .profileHeader{
+      display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;
+    }
+    .userBox{display:flex;flex-direction:column;gap:2px;}
+    .userBox b{font-size:15px}
+    .invList{display:flex;flex-direction:column;gap:8px;margin-top:10px;}
+    .invItem{
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,0.10);
+      background:rgba(0,0,0,0.16);
+      padding:10px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+    }
+    .invLeft{display:flex;gap:10px;align-items:center;min-width:0;}
+    .miniEmoji{
+      width:38px;height:38px;border-radius:14px;
+      background:rgba(255,255,255,0.06);
+      border:1px solid rgba(255,255,255,0.10);
+      display:grid;place-items:center;
+      font-size:20px;
+      flex:0 0 auto;
+    }
+    .invName{
+      font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+      max-width:55vw;
+    }
+    .invMeta{color:var(--muted);font-size:12px;margin-top:2px;}
+    .invRight{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end;}
+    .smallPrice{
+      display:flex;align-items:center;gap:6px;font-weight:900;
+      white-space:nowrap;
+    }
+    .empty{
+      padding:14px;
+      border-radius:14px;
+      border:1px dashed rgba(255,255,255,0.15);
+      color:var(--muted);
+      text-align:center;
+      margin-top:10px;
+    }
+
+    /* Модалка "оставить/продать" */
+    .modalBack{
+      position:fixed;inset:0;
+      background:rgba(0,0,0,0.55);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:16px;
+      z-index:999;
+    }
+    .modal{
+      width:min(520px, 100%);
+      border-radius:18px;
+      background:rgba(15,23,32,0.96);
+      border:1px solid rgba(255,255,255,0.10);
+      box-shadow:0 20px 60px rgba(0,0,0,0.4);
+      padding:14px;
+    }
+    .modalTop{display:flex;justify-content:space-between;align-items:center;gap:10px;}
+    .modalTop b{font-size:16px}
+    .closeX{cursor:pointer;color:var(--muted);font-weight:900;padding:6px 10px;border-radius:12px;}
+    .closeX:hover{background:rgba(255,255,255,0.06);color:var(--text);}
+    .modalBody{margin-top:10px;display:flex;gap:12px;align-items:center;}
+    .bigEmoji{
+      width:74px;height:74px;border-radius:22px;
+      background:rgba(255,255,255,0.06);
+      border:1px solid rgba(255,255,255,0.10);
+      display:grid;place-items:center;font-size:40px;flex:0 0 auto;
+    }
+    .modalActions{margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;}
+    .ok{color:var(--good);font-weight:900;}
+    .warn{color:var(--warn);font-weight:900;}
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <div class="topbar">
+      <div class="title">
+        <b>Easy Gift — Mini App • 24ч • Профиль</b>
+        <small id="subTitle">Подключаем Telegram пользователя…</small>
+      </div>
+
+      <div class="row">
+        <div class="pill" title="Баланс звёзд">
+          <img class="starImg" src="img/Star.png" alt="⭐" onerror="this.style.display='none'">
+          <span id="stars">0</span>
+        </div>
+        <button class="btn secondary" id="addStarsBtn">+ ⭐</button>
+      </div>
+    </div>
+
+    <div class="tabs" role="tablist">
+      <div class="tab active" data-tab="main">Главная</div>
+      <div class="tab" data-tab="profile">Профиль</div>
+    </div>
+
+    <!-- MAIN -->
+    <div id="tab_main" class="tabPage">
+      <div class="card">
+        <h3>Кейсы</h3>
+        <div class="casesRow" id="casesRow"></div>
+        <div class="hint" style="margin-top:8px;">
+          В <b>24 часа</b> можно крутить только один раз. Кнопка покажет таймер, если рано.
+        </div>
+      </div>
+
+      <div class="card rouletteWrap">
+        <h3>Рулетка (горизонтально)</h3>
+
+        <div class="window" id="window">
+          <div class="fadeLeft"></div>
+          <div class="fadeRight"></div>
+          <div class="centerLine"></div>
+          <div class="pointer"></div>
+          <div class="track" id="track"></div>
+        </div>
+
+        <div class="controls">
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+            <span class="badge" id="caseBadge">Кейс: —</span>
+            <span class="badge" id="cooldownBadge">Доступно</span>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="btn secondary" id="demoBtn" title="Демо не тратит звёзды, но НЕ ставит кд">Демо</button>
+            <button class="btn" id="spinBtn">Испытай удачу</button>
+          </div>
+        </div>
+
+        <div class="result">
+          <div>
+            <div class="hint">Результат</div>
+            <b id="resultText">Пока ничего</b>
+          </div>
+          <div class="hint" id="resultMeta"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROFILE -->
+    <div id="tab_profile" class="tabPage" style="display:none;">
+      <div class="card">
+        <h3>Профиль</h3>
+
+        <div class="profileHeader">
+          <div class="userBox">
+            <b id="userName">—</b>
+            <div class="hint" id="userIdLine">—</div>
+          </div>
+
+          <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;">
+            <button class="btn secondary" id="exportBtn">Экспорт</button>
+            <button class="btn danger" id="wipeBtn">Сбросить профиль (локально)</button>
+          </div>
+        </div>
+
+        <div class="hint" style="margin-top:8px;">
+          Здесь хранятся “оставленные” подарки. Можно продать их за ⭐.
+        </div>
+
+        <div id="invWrap"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL keep/sell -->
+  <div class="modalBack" id="modalBack">
+    <div class="modal">
+      <div class="modalTop">
+        <b>Выпал подарок</b>
+        <div class="closeX" id="modalClose">✕</div>
+      </div>
+
+      <div class="modalBody">
+        <div class="bigEmoji" id="modalEmoji">🎁</div>
+        <div style="min-width:0;">
+          <div style="font-weight:900;font-size:14px;" id="modalName">—</div>
+          <div class="hint" id="modalInfo">—</div>
+          <div style="margin-top:8px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+            <div class="smallPrice">
+              <img class="starImg" src="img/Star.png" alt="⭐" onerror="this.style.display='none'">
+              <span id="modalCost">0</span>
+              <span class="hint">стоимость (gift)</span>
+            </div>
+            <div class="smallPrice">
+              <img class="starImg" src="img/Star.png" alt="⭐" onerror="this.style.display='none'">
+              <span id="modalSell">0</span>
+              <span class="hint">за продажу</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modalActions">
+        <button class="btn secondary" id="keepBtn">Оставить</button>
+        <button class="btn" id="sellBtn">Продать за ⭐</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+/* ==========================
+   НАСТРОЙКИ
+========================== */
+const COOLDOWN_MS = 24 * 60 * 60 * 1000; // 24 часа
+const SELL_RATE = 0.20; // 20% от стоимости подарка -> в ⭐ (можешь поменять)
+
+/* Кейсы и призы */
+const CASES = [
+  {
+    id: "case_1",
+    icon: "🎁",
+    name: "Кейс за 1⭐",
+    price: 1,
+    note: "Дешёвое часто. 1⭐ выпадает очень часто.",
+    gifts: [
+      {id:"g_star1", emoji:"⭐", name:"1 звезда", cost:1,  weight:70},
+      {id:"g_heart", emoji:"💝", name:"Сердце",  cost:15, weight:30},
+      {id:"g_lolli", emoji:"🍭", name:"Леденец", cost:560, weight:16},
+      {id:"g_flwr",  emoji:"🌸", name:"Цветок",  cost:1280, weight:10},
+      {id:"g_cake",  emoji:"🍰", name:"Торт",    cost:780, weight:12},
+      {id:"g_potion",emoji:"🧪", name:"Зелье",   cost:2300, weight:4},
+    ]
+  },
+  {
+    id: "case_5",
+    icon: "🧸",
+    name: "Кейс за 5⭐",
+    price: 5,
+    note: "Средние призы",
+    gifts: [
+      {id:"g_cake2", emoji:"🍰", name:"Торт с вишней", cost:780,  weight:18},
+      {id:"g_flwr2", emoji:"🌸", name:"Цветок",       cost:1280, weight:16},
+      {id:"g_shoe",  emoji:"👠", name:"Туфли",        cost:1750, weight:12},
+      {id:"g_potion2",emoji:"🧪",name:"Зелье",        cost:2300, weight:10},
+      {id:"g_rose",  emoji:"🌹", name:"Роза в колбе", cost:3500, weight:6},
+      {id:"g_ring",  emoji:"💍", name:"Кольцо",       cost:3900, weight:4},
+    ]
+  },
+  {
+    id: "case_40",
+    icon: "💝",
+    name: "Кейс за 40⭐",
+    price: 40,
+    note: "Топ призы чаще, чем в дешёвых",
+    gifts: [
+      {id:"g_bear",  emoji:"🧸", name:"Мишка",        cost:5500, weight:6},
+      {id:"g_ring2", emoji:"💍", name:"Кольцо",       cost:3900, weight:10},
+      {id:"g_rose2", emoji:"🌹", name:"Роза в колбе", cost:3500, weight:10},
+      {id:"g_shoe2", emoji:"👠", name:"Туфли",        cost:1750, weight:18},
+      {id:"g_flwr3", emoji:"🌸", name:"Цветок",       cost:1280, weight:22},
+      {id:"g_lolli2",emoji:"🍭", name:"Леденец",      cost:560,  weight:26},
+    ]
+  }
+];
+
+/* ==========================
+   ПЕРСИСТЕНТНОСТЬ / USER
+========================== */
+function safeJsonParse(s, fallback){
+  try { return JSON.parse(s); } catch { return fallback; }
+}
+function nowMs(){ return Date.now(); }
+function fmtTimeLeft(ms){
+  ms = Math.max(0, ms);
+  const totalSec = Math.floor(ms/1000);
+  const h = Math.floor(totalSec/3600);
+  const m = Math.floor((totalSec%3600)/60);
+  const s = totalSec%60;
+  const pad = (x)=>String(x).padStart(2,"0");
+  return `${pad(h)}:${pad(m)}:${pad(s)}`;
+}
+
+function getTelegramUser(){
+  const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+  if (!tg) return null;
+  // initDataUnsafe.user обычно доступен в Mini App
+  const u = tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user : null;
+  if (!u || !u.id) return null;
+
+  // Можно раскрыть миниапп на весь экран
+  try { tg.expand(); } catch {}
+
+  return {
+    id: String(u.id),
+    username: u.username ? "@"+u.username : "",
+    first_name: u.first_name || "",
+    last_name: u.last_name || "",
+  };
+}
+
+function ensureGuestUser(){
+  const key = "eg_guest_id";
+  let id = localStorage.getItem(key);
+  if (!id){
+    id = "guest_" + Math.random().toString(16).slice(2) + "_" + Date.now();
+    localStorage.setItem(key, id);
+  }
+  return { id, username:"", first_name:"Гость", last_name:"" };
+}
+
+let USER = null;
+
+function initUser(){
+  const tgUser = getTelegramUser();
+  USER = tgUser ? tgUser : ensureGuestUser();
+
+  // подпись
+  const name = [USER.first_name, USER.last_name].filter(Boolean).join(" ").trim() || "Пользователь";
+  const sub = tgUser
+    ? `Вход: Telegram • ${name} ${USER.username}`.trim()
+    : `Вход: Локальный гость (вне Telegram)`;
+
+  document.getElementById("subTitle").textContent = sub;
+  document.getElementById("userName").textContent = `${name} ${USER.username}`.trim();
+  document.getElementById("userIdLine").textContent = `ID: ${USER.id}`;
+
+  // Если в Telegram — можно включить тёмную тему / цвета (не обязательно)
+  const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+  if (tg){
+    try { tg.setHeaderColor("#0f1720"); } catch {}
+    try { tg.setBackgroundColor("#0f1720"); } catch {}
+  }
+}
+
+/* ключи под пользователя */
+function kBalance(){ return `eg_balance_${USER.id}`; }
+function kInv(){ return `eg_inventory_${USER.id}`; }
+function kLastSpin(){ return `eg_lastSpin_${USER.id}`; }
+
+/* ==========================
+   СОСТОЯНИЕ
+========================== */
+const els = {
+  stars: document.getElementById("stars"),
+  addStarsBtn: document.getElementById("addStarsBtn"),
+  casesRow: document.getElementById("casesRow"),
+  caseBadge: document.getElementById("caseBadge"),
+  cooldownBadge: document.getElementById("cooldownBadge"),
+  track: document.getElementById("track"),
+  window: document.getElementById("window"),
+  spinBtn: document.getElementById("spinBtn"),
+  demoBtn: document.getElementById("demoBtn"),
+  resultText: document.getElementById("resultText"),
+  resultMeta: document.getElementById("resultMeta"),
+  invWrap: document.getElementById("invWrap"),
+  exportBtn: document.getElementById("exportBtn"),
+  wipeBtn: document.getElementById("wipeBtn"),
+
+  modalBack: document.getElementById("modalBack"),
+  modalClose: document.getElementById("modalClose"),
+  modalEmoji: document.getElementById("modalEmoji"),
+  modalName: document.getElementById("modalName"),
+  modalInfo: document.getElementById("modalInfo"),
+  modalCost: document.getElementById("modalCost"),
+  modalSell: document.getElementById("modalSell"),
+  keepBtn: document.getElementById("keepBtn"),
+  sellBtn: document.getElementById("sellBtn"),
+};
+
+let stars = 0;
+let inventory = [];
+let activeCase = CASES[0];
+let isSpinning = false;
+
+let pendingGift = null; // текущий выпавший подарок, чтобы “оставить/продать”
+
+/* ==========================
+   STORAGE
+========================== */
+function loadAll(){
+  const savedBal = Number(localStorage.getItem(kBalance()));
+  stars = Number.isFinite(savedBal) ? savedBal : 40;
+
+  inventory = safeJsonParse(localStorage.getItem(kInv()), []);
+  if (!Array.isArray(inventory)) inventory = [];
+
+  updateStarsUI();
+}
+
+function saveBalance(){
+  localStorage.setItem(kBalance(), String(stars));
+}
+function saveInventory(){
+  localStorage.setItem(kInv(), JSON.stringify(inventory));
+}
+
+function updateStarsUI(){
+  els.stars.textContent = String(stars);
+}
+
+/* ==========================
+   UI — tabs
+========================== */
+function setTab(name){
+  document.querySelectorAll(".tab").forEach(t=>{
+    t.classList.toggle("active", t.dataset.tab === name);
+  });
+  document.querySelectorAll(".tabPage").forEach(p=>p.style.display="none");
+  document.getElementById("tab_"+name).style.display = "";
+  if (name === "profile") renderInventory();
+}
+document.querySelectorAll(".tab").forEach(t=>{
+  t.addEventListener("click", ()=> setTab(t.dataset.tab));
+});
+
+/* ==========================
+   РУЛЕТКА / ШАНС
+========================== */
+function escapeHtml(str){
+  return String(str)
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+
+function weightedPick(list){
+  const total = list.reduce((s,g)=>s + (g.weight || 1), 0);
+  let r = Math.random() * total;
+  for (let i=0;i<list.length;i++){
+    r -= (list[i].weight || 1);
+    if (r <= 0) return { gift:list[i], index:i };
+  }
+  return { gift:list[list.length-1], index:list.length-1 };
+}
+
+function buildTrack(baseGifts){
+  const repeats = 18;
+  const items = [];
+  for (let r=0;r<repeats;r++){
+    for (const g of baseGifts) items.push(g);
+  }
+
+  els.track.innerHTML = items.map(g => `
+    <div class="item">
+      <div class="itemEmoji">${escapeHtml(g.emoji)}</div>
+      <div class="itemName">${escapeHtml(g.name)}</div>
+      <div class="itemCost">
+        <img class="starImg" src="img/Star.png" alt="⭐" onerror="this.style.display='none'">
+        <span>${g.cost}</span>
+      </div>
+    </div>
+  `).join("");
+
+  els.track.style.transform = "translateX(0px)";
+  els.track.dataset.repeats = String(repeats);
+}
+
+function getCurrentTranslateX(){
+  const tr = getComputedStyle(els.track).transform;
+  if (!tr || tr === "none") return 0;
+  const m = tr.match(/matrix\(([^)]+)\)/);
+  if (!m) return 0;
+  const parts = m[1].split(",").map(x => Number(x.trim()));
+  return parts[4] || 0;
+}
+function clamp(n,a,b){ return Math.max(a, Math.min(b, n)); }
+function easeOutCubic(t){ return 1 - Math.pow(1 - t, 3); }
+function animate(ms, step){
+  return new Promise((resolve) => {
+    const start = performance.now();
+    function frame(now){
+      const t = clamp((now - start) / ms, 0, 1);
+      step(t);
+      if (t < 1) requestAnimationFrame(frame);
+      else resolve();
+    }
+    requestAnimationFrame(frame);
+  });
+}
+
+/* ==========================
+   24 ЧАСА (Cooldown)
+========================== */
+function getLastSpinMs(){
+  const v = Number(localStorage.getItem(kLastSpin()));
+  return Number.isFinite(v) ? v : 0;
+}
+function setLastSpinMs(ms){
+  localStorage.setItem(kLastSpin(), String(ms));
+}
+
+function getCooldownLeftMs(){
+  const last = getLastSpinMs();
+  if (!last) return 0;
+  const left = (last + COOLDOWN_MS) - nowMs();
+  return Math.max(0, left);
+}
+
+function canSpinNow(){
+  return getCooldownLeftMs() <= 0;
+}
+
+function updateCooldownUI(){
+  const left = getCooldownLeftMs();
+  if (left <= 0){
+    els.cooldownBadge.textContent = "Доступно";
+    els.spinBtn.disabled = false;
+    return;
+  }
+  els.cooldownBadge.textContent = `Через ${fmtTimeLeft(left)}`;
+  els.spinBtn.disabled = true;
+}
+
+/* обновлять таймер каждые 0.5сек */
+setInterval(updateCooldownUI, 500);
+
+/* ==========================
+   Кейсы
+========================== */
+function renderCases(){
+  els.casesRow.innerHTML = CASES.map(c => `
+    <div class="caseCard ${c.id === activeCase.id ? "active" : ""}" data-id="${c.id}">
+      <div class="caseArt">${escapeHtml(c.icon)}</div>
+      <div class="caseInfo">
+        <div class="caseName">${escapeHtml(c.name)}</div>
+        <div class="caseSub">${escapeHtml(c.note || "")}</div>
+        <div class="priceLine">
+          <img class="starImg" src="img/Star.png" alt="⭐" onerror="this.style.display='none'">
+          <span>${c.price}</span>
+          <small>за спин</small>
+        </div>
+      </div>
+    </div>
+  `).join("");
+
+  [...els.casesRow.querySelectorAll(".caseCard")].forEach(card=>{
+    card.addEventListener("click", ()=>{
+      const id = card.dataset.id;
+      const found = CASES.find(x=>x.id===id);
+      if (!found) return;
+      activeCase = found;
+      renderCases();
+      refreshRoulette();
+    });
+  });
+}
+
+function refreshRoulette(){
+  els.caseBadge.textContent = `Кейс: ${activeCase.name} • цена ${activeCase.price}`;
+  els.spinBtn.innerHTML = `Испытай удачу — <span style="display:inline-flex;align-items:center;gap:6px;vertical-align:middle;">
+    <img class="starImg" src="img/Star.png" alt="⭐" onerror="this.style.display='none'">
+    ${activeCase.price}
+  </span>`;
+  buildTrack(activeCase.gifts);
+  els.resultText.textContent = "Пока ничего";
+  els.resultMeta.textContent = "";
+  updateCooldownUI();
+}
+
+/* ==========================
+   Модалка “оставить/продать”
+========================== */
+function openModal(gift, caseObj){
+  pendingGift = { gift, caseObj };
+
+  const sellValue = Math.max(1, Math.floor((gift.cost || 0) * SELL_RATE));
+  els.modalEmoji.textContent = gift.emoji || "🎁";
+  els.modalName.textContent = gift.name || "Подарок";
+  els.modalInfo.textContent = `Из кейса: ${caseObj.name} • Продажа: ${Math.round(SELL_RATE*100)}% от стоимости`;
+  els.modalCost.textContent = String(gift.cost || 0);
+  els.modalSell.textContent = String(sellValue);
+
+  els.modalBack.style.display = "flex";
+}
+function closeModal(){
+  els.modalBack.style.display = "none";
+  pendingGift = null;
+}
+els.modalClose.addEventListener("click", closeModal);
+els.modalBack.addEventListener("click", (e)=>{
+  if (e.target === els.modalBack) closeModal();
+});
+
+/* ==========================
+   Инвентарь / профиль
+========================== */
+function addToInventory(gift, caseObj){
+  const item = {
+    uid: "inv_" + Math.random().toString(16).slice(2) + "_" + Date.now(),
+    giftId: gift.id || "",
+    emoji: gift.emoji || "🎁",
+    name: gift.name || "Подарок",
+    cost: Number(gift.cost || 0),
+    fromCase: caseObj.name || "",
+    ts: nowMs(),
+  };
+  inventory.unshift(item);
+  saveInventory();
+}
+
+function sellItemValue(cost){
+  return Math.max(1, Math.floor((Number(cost)||0) * SELL_RATE));
+}
+
+function renderInventory(){
+  if (!inventory.length){
+    els.invWrap.innerHTML = `<div class="empty">Инвентарь пуст. Сначала выбей подарок и нажми “Оставить”.</div>`;
+    return;
+  }
+
+  els.invWrap.innerHTML = `
+    <div class="invList">
+      ${inventory.map(it => `
+        <div class="invItem" data-uid="${escapeHtml(it.uid)}">
+          <div class="invLeft">
+            <div class="miniEmoji">${escapeHtml(it.emoji)}</div>
+            <div style="min-width:0;">
+              <div class="invName">${escapeHtml(it.name)}</div>
+              <div class="invMeta">Из: ${escapeHtml(it.fromCase)} • ${new Date(it.ts).toLocaleString()}</div>
+            </div>
+          </div>
+
+          <div class="invRight">
+            <div class="smallPrice" title="Стоимость подарка">
+              <img class="starImg" src="img/Star.png" alt="⭐" onerror="this.style.display='none'">
+              <span>${it.cost}</span>
+            </div>
+            <div class="smallPrice" title="Цена продажи">
+              <img class="starImg" src="img/Star.png" alt="⭐" onerror="this.style.display='none'">
+              <span>${sellItemValue(it.cost)}</span>
+            </div>
+            <button class="btn" data-sell="${escapeHtml(it.uid)}">Продать</button>
+          </div>
+        </div>
+      `).join("")}
+    </div>
+  `;
+
+  els.invWrap.querySelectorAll("button[data-sell]").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      const uid = btn.getAttribute("data-sell");
+      const idx = inventory.findIndex(x=>x.uid===uid);
+      if (idx < 0) return;
+      const it = inventory[idx];
+      const gain = sellItemValue(it.cost);
+
+      // продаём
+      inventory.splice(idx, 1);
+      saveInventory();
+      stars += gain;
+      saveBalance();
+      updateStarsUI();
+      renderInventory();
+      alert(`Продано: +${gain} ⭐`);
+    });
+  });
+}
+
+/* ==========================
+   Spin
+========================== */
+async function spin({demo=false} = {}){
+  if (isSpinning) return;
+
+  // ДЕМО: не тратит звёзды и не ставит 24ч кд
+  if (!demo){
+    if (!canSpinNow()){
+      // просто обновим UI
+      updateCooldownUI();
+      return;
+    }
+    const price = Number(activeCase.price) || 0;
+    if (stars < price){
+      els.resultText.textContent = "Не хватает звёзд";
+      els.resultMeta.textContent = `Нужно: ${price}`;
+      return;
+    }
+  }
+
+  isSpinning = true;
+  els.spinBtn.disabled = true;
+  els.demoBtn.disabled = true;
+
+  if (!demo){
+    // списываем ровно цену
+    const price = Number(activeCase.price) || 0;
+    stars = stars - price;
+    saveBalance();
+    updateStarsUI();
+  }
+
+  const base = activeCase.gifts;
+  const picked = weightedPick(base);
+  const baseIndex = picked.index;
+
+  const repeats = Number(els.track.dataset.repeats || 18);
+  const targetRepeat = repeats - 3;
+  const targetIndexLong = targetRepeat * base.length + baseIndex;
+
+  const rect = els.window.getBoundingClientRect();
+  const centerX = rect.width / 2;
+
+  const ITEM_W = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--itemW')) || 150;
+  const itemCenterX = targetIndexLong * ITEM_W + ITEM_W / 2;
+  const targetTranslate = centerX - itemCenterX;
+
+  const from = getCurrentTranslateX();
+  const duration = 2400 + Math.random()*700;
+  const jitter = (Math.random()*12) - 6;
+  const finalTranslate = targetTranslate + jitter;
+
+  await animate(duration, (t)=>{
+    const eased = easeOutCubic(t);
+    const x = from + (finalTranslate - from) * eased;
+    els.track.style.transform = `translateX(${x}px)`;
+  });
+
+  els.track.style.transform = `translateX(${targetTranslate}px)`;
+
+  els.resultText.textContent = `${picked.gift.emoji} ${picked.gift.name}`;
+  els.resultMeta.textContent = demo ? "демо" : "спин";
+
+  // после РЕАЛЬНОГО спина ставим кд 24 часа
+  if (!demo){
+    setLastSpinMs(nowMs());
+    updateCooldownUI();
+
+    // показываем выбор: оставить или продать
+    openModal(picked.gift, activeCase);
+  }
+
+  isSpinning = false;
+  els.demoBtn.disabled = false;
+  // spinBtn включится/выключится по таймеру
+}
+
+/* кнопки */
+els.spinBtn.addEventListener("click", ()=> spin({demo:false}));
+els.demoBtn.addEventListener("click", ()=> spin({demo:true}));
+
+els.addStarsBtn.addEventListener("click", ()=>{
+  const v = prompt("Сколько звёзд добавить?", "40");
+  if (v === null) return;
+  const n = Math.floor(Number(v));
+  if (!Number.isFinite(n) || n <= 0) return;
+  stars += n;
+  saveBalance();
+  updateStarsUI();
+});
+
+/* Модалка: оставить/продать */
+els.keepBtn.addEventListener("click", ()=>{
+  if (!pendingGift) return;
+  addToInventory(pendingGift.gift, pendingGift.caseObj);
+  closeModal();
+  alert("Подарок сохранён в профиле ✅");
+});
+els.sellBtn.addEventListener("click", ()=>{
+  if (!pendingGift) return;
+  const gain = Math.max(1, Math.floor((pendingGift.gift.cost || 0) * SELL_RATE));
+  stars += gain;
+  saveBalance();
+  updateStarsUI();
+  closeModal();
+  alert(`Продано: +${gain} ⭐`);
+});
+
+/* Экспорт профиля */
+els.exportBtn.addEventListener("click", ()=>{
+  const data = {
+    user: USER,
+    stars,
+    inventory,
+    lastSpinMs: getLastSpinMs(),
+    exportedAt: new Date().toISOString()
+  };
+  const txt = JSON.stringify(data, null, 2);
+  // для телефона проще показать и дать скопировать
+  prompt("Скопируй экспорт JSON:", txt);
+});
+
+/* Сброс локальных данных */
+els.wipeBtn.addEventListener("click", ()=>{
+  const ok = confirm("Точно сбросить профиль? (удалит звёзды/инвентарь/кд локально)");
+  if (!ok) return;
+  localStorage.removeItem(kBalance());
+  localStorage.removeItem(kInv());
+  localStorage.removeItem(kLastSpin());
+  loadAll();
+  renderInventory();
+  updateCooldownUI();
+  alert("Сброшено.");
+});
+
+/* ==========================
+   INIT
+========================== */
+initUser();
+loadAll();
+renderCases();
+refreshRoulette();
+updateCooldownUI();
+renderInventory();
+
+</script>
+</body>
+</html>
