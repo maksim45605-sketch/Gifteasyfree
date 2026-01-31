@@ -5,72 +5,81 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1" />
   <title>Easy Gift — кейсы, профиль, 24ч</title>
 
-  <!-- Telegram Mini App SDK -->
+  <!-- Telegram Mini App SDK (если откроют в Telegram) -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
   <style>
     :root{
-      --bg:#1f2730;
-      --bg2:#1b222b;
-      --panel:#2a333d;
-      --panel2:#313c47;
-      --text:#e9f1fb;
-      --muted:#9fb0c5;
-      --accent:#2aa8ff;
-      --accent2:#0f7ecb;
+      --bg:#0f1720;
+      --text:#e7eef7;
+      --muted:#93a6bd;
+      --accent:#33a6ff;
       --good:#17c964;
       --warn:#f5a524;
       --danger:#ff4d4d;
-      --radius:18px;
+      --radius:16px;
 
       --itemW: 150px;
       --itemH: 120px;
     }
-
     *{box-sizing:border-box}
     body{
       margin:0;
-      background:linear-gradient(180deg,#151b22, var(--bg) 25%, #151b22);
+      background:linear-gradient(180deg,#0b121a, #0f1720 40%, #0b121a);
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
       color:var(--text);
-      padding:12px 12px 92px; /* место под нижнее меню */
+      padding:16px;
     }
-
     .app{max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:12px;}
 
-    /* Верхняя шапка как на фотке */
     .topbar{
-      background:linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));
-      border:1px solid rgba(255,255,255,0.08);
-      border-radius:22px;
-      padding:12px 12px;
+      background:rgba(255,255,255,0.04);
+      border:1px solid rgba(255,255,255,0.06);
+      border-radius:var(--radius);
+      padding:12px 14px;
       display:flex;
       align-items:center;
       justify-content:space-between;
       gap:10px;
     }
-    .leftHead{display:flex;align-items:center;gap:10px;min-width:0;}
+
+    /* ✅ добавил аватар+ник слева, но общий стиль НЕ ломал */
+    .topLeft{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      min-width:0;
+    }
     .avatar{
-      width:40px;height:40px;border-radius:50%;
-      background:rgba(255,255,255,0.10);
+      width:42px;height:42px;
+      border-radius:50%;
+      background:rgba(255,255,255,0.06);
       border:1px solid rgba(255,255,255,0.10);
       overflow:hidden;
       flex:0 0 auto;
-      display:grid;place-items:center;
+      display:grid;
+      place-items:center;
+      color:var(--muted);
       font-weight:900;
-      color:var(--text);
+      user-select:none;
     }
-    .avatar img{width:100%;height:100%;object-fit:cover;display:block;}
-    .headText{display:flex;flex-direction:column;gap:2px;min-width:0;}
-    .headText b{font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-    .headText small{color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .avatar img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      display:block;
+    }
 
-    .rightHead{display:flex;align-items:center;gap:10px;flex:0 0 auto;}
+    .title{display:flex;flex-direction:column;gap:2px;line-height:1.1;min-width:0;}
+    .title b{font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .title small{color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+
+    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end;}
     .pill{
-      padding:10px 12px;
+      padding:8px 10px;
       border-radius:999px;
-      background:rgba(0,0,0,0.18);
-      border:1px solid rgba(255,255,255,0.10);
+      background:rgba(255,255,255,0.05);
+      border:1px solid rgba(255,255,255,0.08);
       display:flex;
       align-items:center;
       gap:8px;
@@ -81,24 +90,10 @@
       width:18px;height:18px;object-fit:contain;display:block;
       filter: drop-shadow(0 2px 6px rgba(0,0,0,.35));
     }
-    .plusBtn{
-      width:44px;height:44px;border-radius:999px;
-      border:0;
-      background:var(--accent);
-      color:#06121b;
-      font-weight:900;
-      font-size:20px;
-      cursor:pointer;
-      user-select:none;
-      touch-action:manipulation;
-      box-shadow:0 10px 25px rgba(42,168,255,0.20);
-    }
-    .plusBtn:disabled{opacity:.5;cursor:not-allowed;box-shadow:none;}
-
     .btn{
       border:0;
-      border-radius:14px;
-      padding:11px 14px;
+      border-radius:12px;
+      padding:10px 12px;
       font-weight:900;
       background:var(--accent);
       color:#06121b;
@@ -108,30 +103,51 @@
     }
     .btn:disabled{opacity:.55;cursor:not-allowed;}
     .btn.secondary{
-      background:rgba(255,255,255,0.06);
+      background:rgba(255,255,255,0.08);
       color:var(--text);
-      border:1px solid rgba(255,255,255,0.10);
+      border:1px solid rgba(255,255,255,0.12);
     }
     .btn.danger{
-      background:rgba(255,77,77,0.16);
+      background:rgba(255,77,77,0.18);
       color:var(--text);
       border:1px solid rgba(255,77,77,0.35);
     }
 
+    .tabs{
+      display:flex;gap:8px;flex-wrap:wrap;
+      background:rgba(255,255,255,0.04);
+      border:1px solid rgba(255,255,255,0.06);
+      border-radius:999px;
+      padding:6px;
+      width:fit-content;
+    }
+    .tab{
+      padding:9px 12px;
+      border-radius:999px;
+      cursor:pointer;
+      font-weight:900;
+      color:var(--muted);
+      user-select:none;
+    }
+    .tab.active{
+      background:rgba(51,166,255,0.18);
+      border:1px solid rgba(51,166,255,0.35);
+      color:var(--text);
+    }
+
     .card{
-      background:rgba(255,255,255,0.05);
-      border:1px solid rgba(255,255,255,0.08);
-      border-radius:22px;
+      background:rgba(255,255,255,0.04);
+      border:1px solid rgba(255,255,255,0.06);
+      border-radius:var(--radius);
       padding:12px;
     }
     .card h3{
       margin:0 0 10px 0;
       font-size:14px;
-      color:rgba(233,241,251,0.85);
+      color:var(--muted);
       font-weight:900;
       letter-spacing:.2px;
-      text-transform:none;
-      opacity:.9;
+      text-transform:uppercase;
     }
 
     /* Кейсы */
@@ -147,7 +163,7 @@
       flex:0 0 240px;
       scroll-snap-align:start;
       border-radius:18px;
-      background:rgba(0,0,0,0.18);
+      background:rgba(0,0,0,0.16);
       border:1px solid rgba(255,255,255,0.10);
       padding:12px;
       display:flex;
@@ -157,20 +173,22 @@
       user-select:none;
     }
     .caseCard.active{
-      border-color:rgba(42,168,255,0.85);
-      box-shadow:0 0 0 4px rgba(42,168,255,0.10);
+      border-color:rgba(51,166,255,0.7);
+      box-shadow:0 0 0 4px rgba(51,166,255,0.10);
     }
     .caseArt{
       width:64px;height:64px;
-      border-radius:18px;
+      border-radius:16px;
       background:rgba(255,255,255,0.06);
       border:1px solid rgba(255,255,255,0.10);
       display:grid;place-items:center;
       font-size:28px;
       flex:0 0 auto;
     }
-    .caseInfo{min-width:0;display:flex;flex-direction:column;gap:6px;}
+    .caseInfo{min-width:0;display:flex;flex-direction:column;gap:4px;}
     .caseName{font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    /* ✅ caseSub оставляю в CSS, но в HTML больше НЕ вывожу (описание удалено) */
+    .caseSub{color:var(--muted);font-size:12px;line-height:1.2;}
     .priceLine{display:flex;align-items:center;gap:6px;font-weight:900;}
     .priceLine small{color:var(--muted);font-weight:700}
 
@@ -182,16 +200,16 @@
       overflow:hidden;
       border-radius:18px;
       background:linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
-      border:1px solid rgba(255,255,255,0.10);
+      border:1px solid rgba(255,255,255,0.08);
     }
     .fadeLeft, .fadeRight{
       position:absolute;top:0;bottom:0;width:44px;z-index:3;pointer-events:none;
     }
-    .fadeLeft{left:0;background:linear-gradient(90deg, rgba(31,39,48,1), rgba(31,39,48,0));}
-    .fadeRight{right:0;background:linear-gradient(270deg, rgba(31,39,48,1), rgba(31,39,48,0));}
+    .fadeLeft{left:0;background:linear-gradient(90deg, rgba(15,23,32,1), rgba(15,23,32,0));}
+    .fadeRight{right:0;background:linear-gradient(270deg, rgba(15,23,32,1), rgba(15,23,32,0));}
     .centerLine{
       position:absolute;top:0;bottom:0;left:50%;
-      width:2px;background:rgba(42,168,255,.35);z-index:2;
+      width:2px;background:rgba(51,166,255,.35);z-index:2;
     }
     .pointer{
       position:absolute;
@@ -201,7 +219,7 @@
       width:0;height:0;
       border-left:12px solid transparent;
       border-right:12px solid transparent;
-      border-top:16px solid rgba(42,168,255,.95);
+      border-top:16px solid rgba(51,166,255,.95);
       z-index:4;
       filter:drop-shadow(0 6px 10px rgba(0,0,0,.35));
     }
@@ -250,14 +268,13 @@
       display:flex;align-items:center;gap:6px;
       font-weight:900;
     }
-
     .badge{
       font-size:12px;
       color:var(--muted);
-      padding:7px 12px;
+      padding:6px 10px;
       border-radius:999px;
-      border:1px solid rgba(255,255,255,0.10);
-      background:rgba(0,0,0,0.18);
+      border:1px solid rgba(255,255,255,0.08);
+      background:rgba(255,255,255,0.04);
     }
     .controls{
       display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:space-between;
@@ -266,9 +283,9 @@
     .result{
       margin-top:10px;
       padding:10px 12px;
-      border-radius:16px;
+      border-radius:14px;
       border:1px solid rgba(255,255,255,0.10);
-      background:rgba(0,0,0,0.20);
+      background:rgba(0,0,0,0.18);
       display:flex;
       align-items:center;
       justify-content:space-between;
@@ -284,9 +301,9 @@
     .userBox b{font-size:15px}
     .invList{display:flex;flex-direction:column;gap:8px;margin-top:10px;}
     .invItem{
-      border-radius:16px;
+      border-radius:14px;
       border:1px solid rgba(255,255,255,0.10);
-      background:rgba(0,0,0,0.18);
+      background:rgba(0,0,0,0.16);
       padding:10px;
       display:flex;
       justify-content:space-between;
@@ -314,15 +331,14 @@
     }
     .empty{
       padding:14px;
-      border-radius:16px;
+      border-radius:14px;
       border:1px dashed rgba(255,255,255,0.15);
       color:var(--muted);
       text-align:center;
       margin-top:10px;
-      background:rgba(0,0,0,0.14);
     }
 
-    /* Модалка keep/sell */
+    /* Модалка "оставить/продать" */
     .modalBack{
       position:fixed;inset:0;
       background:rgba(0,0,0,0.55);
@@ -334,8 +350,8 @@
     }
     .modal{
       width:min(520px, 100%);
-      border-radius:20px;
-      background:rgba(31,39,48,0.98);
+      border-radius:18px;
+      background:rgba(15,23,32,0.96);
       border:1px solid rgba(255,255,255,0.10);
       box-shadow:0 20px 60px rgba(0,0,0,0.4);
       padding:14px;
@@ -352,103 +368,49 @@
       display:grid;place-items:center;font-size:40px;flex:0 0 auto;
     }
     .modalActions{margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;}
-
-    /* Нижняя навигация как на фотке */
-    .bottomNav{
-      position:fixed;left:0;right:0;bottom:0;
-      padding:10px 10px calc(10px + env(safe-area-inset-bottom));
-      background:rgba(21,27,34,0.85);
-      backdrop-filter: blur(10px);
-      border-top:1px solid rgba(255,255,255,0.08);
-      z-index:998;
-    }
-    .navRow{
-      max-width:980px;margin:0 auto;
-      display:grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap:6px;
-    }
-    .navItem{
-      border-radius:16px;
-      padding:10px 8px;
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      gap:6px;
-      color:rgba(233,241,251,0.70);
-      user-select:none;
-      cursor:pointer;
-      border:1px solid transparent;
-      background:transparent;
-      font-weight:800;
-      font-size:11px;
-    }
-    .navItem .ico{font-size:18px;opacity:.9;}
-    .navItem.active{
-      color:var(--text);
-      background:rgba(42,168,255,0.14);
-      border-color:rgba(42,168,255,0.30);
-    }
-
-    /* Админ */
-    .adminGrid{
-      display:grid;
-      grid-template-columns:1fr;
-      gap:10px;
-      margin-top:10px;
-    }
-    .field{
-      display:flex;gap:8px;align-items:center;flex-wrap:wrap;
-    }
-    .inp{
-      flex:1 1 auto;
-      min-width:160px;
-      padding:12px 12px;
-      border-radius:14px;
-      border:1px solid rgba(255,255,255,0.10);
-      background:rgba(0,0,0,0.18);
-      color:var(--text);
-      outline:none;
-      font-weight:800;
-    }
-    .small{font-size:12px;color:var(--muted);}
   </style>
 </head>
 
 <body>
   <div class="app">
-
-    <!-- TOPBAR -->
     <div class="topbar">
-      <div class="leftHead">
+      <!-- ✅ левый блок: аватар + заголовок/ник -->
+      <div class="topLeft">
         <div class="avatar" id="avatar">
           <span id="avatarFallback">EG</span>
         </div>
-        <div class="headText">
-          <b id="headName">Easy Gift</b>
+
+        <div class="title">
+          <b>Easy Gift — Mini App • 24ч • Профиль</b>
           <small id="subTitle">Подключаем Telegram пользователя…</small>
         </div>
       </div>
 
-      <div class="rightHead">
+      <div class="row">
         <div class="pill" title="Баланс звёзд">
           <img class="starImg" src="img/Star.png" alt="⭐" onerror="this.style.display='none'">
           <span id="stars">0</span>
         </div>
-        <!-- ПЛЮС КНОПКА: обычным людям не даёт звёзды -->
-        <button class="plusBtn" id="plusBtn" title="Пополнение (только админ) / Заглушка">+</button>
+        <!-- ✅ античит: пополнение только админ -->
+        <button class="btn secondary" id="addStarsBtn">+ ⭐</button>
       </div>
     </div>
 
-    <!-- PAGES -->
-    <div id="page_main" class="page">
+    <div class="tabs" role="tablist">
+      <div class="tab active" data-tab="main">Главная</div>
+      <div class="tab" data-tab="profile">Профиль</div>
+    </div>
+
+    <!-- MAIN -->
+    <div id="tab_main" class="tabPage">
       <div class="card">
         <h3>Кейсы</h3>
         <div class="casesRow" id="casesRow"></div>
+        <!-- ✅ убрал описание/подсказку под кейсами -->
       </div>
 
       <div class="card rouletteWrap">
-        <h3>Лотерея</h3>
+        <h3>Рулетка (горизонтально)</h3>
 
         <div class="window" id="window">
           <div class="fadeLeft"></div>
@@ -476,11 +438,11 @@
           </div>
           <div class="hint" id="resultMeta"></div>
         </div>
-
       </div>
     </div>
 
-    <div id="page_profile" class="page" style="display:none;">
+    <!-- PROFILE -->
+    <div id="tab_profile" class="tabPage" style="display:none;">
       <div class="card">
         <h3>Профиль</h3>
 
@@ -492,7 +454,7 @@
 
           <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;">
             <button class="btn secondary" id="exportBtn">Экспорт</button>
-            <button class="btn danger" id="wipeBtn">Сбросить профиль</button>
+            <button class="btn danger" id="wipeBtn">Сбросить профиль (локально)</button>
           </div>
         </div>
 
@@ -501,47 +463,18 @@
         </div>
 
         <div id="invWrap"></div>
-      </div>
-    </div>
 
-    <div id="page_soon" class="page" style="display:none;">
-      <div class="card">
-        <h3>Скоро</h3>
-        <div class="empty">Этот раздел пока в разработке.</div>
-      </div>
-    </div>
-
-    <div id="page_upgrade" class="page" style="display:none;">
-      <div class="card">
-        <h3>Апгрейд</h3>
-        <div class="empty">Этот раздел пока в разработке.</div>
-      </div>
-    </div>
-
-    <div id="page_admin" class="page" style="display:none;">
-      <div class="card">
-        <h3>Админ панель</h3>
-        <div class="small">Доступ только для <b>@RealZanT</b></div>
-
-        <div class="adminGrid">
-          <div class="field">
-            <input class="inp" id="adminSetStars" type="number" placeholder="Установить баланс (например 100)" />
-            <button class="btn" id="adminApplyStars">Применить</button>
-          </div>
-
-          <div class="field">
-            <button class="btn secondary" id="adminAdd10">+10 ⭐</button>
-            <button class="btn secondary" id="adminResetCd">Сбросить КД 24ч</button>
-            <button class="btn danger" id="adminWipeAll">Стереть профиль (текущий)</button>
-          </div>
-
-          <div class="field">
-            <button class="btn secondary" id="adminExport">Экспорт (JSON)</button>
+        <!-- ✅ мини-админ блок (видит только @RealZanT), без изменения дизайна приложения -->
+        <div id="adminBlock" style="display:none;margin-top:12px;">
+          <div class="hint" style="margin-bottom:8px;">Админ: @RealZanT</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;">
+            <button class="btn secondary" id="adminAdd100">+100 ⭐</button>
+            <button class="btn secondary" id="adminResetCd">Сбросить КД</button>
           </div>
         </div>
+
       </div>
     </div>
-
   </div>
 
   <!-- MODAL keep/sell -->
@@ -579,35 +512,26 @@
     </div>
   </div>
 
-  <!-- bottom nav -->
-  <div class="bottomNav">
-    <div class="navRow">
-      <div class="navItem active" data-page="main"><div class="ico">🎁</div>Главная</div>
-      <div class="navItem" data-page="main"><div class="ico">🎲</div>Лотерея</div>
-      <div class="navItem" data-page="soon"><div class="ico">🕒</div>Скоро</div>
-      <div class="navItem" data-page="upgrade"><div class="ico">⬆️</div>Апгрейд</div>
-      <div class="navItem" data-page="profile"><div class="ico">👤</div>Профиль</div>
-    </div>
-  </div>
-
 <script>
 /* ==========================
    НАСТРОЙКИ
 ========================== */
 const COOLDOWN_MS = 24 * 60 * 60 * 1000; // 24 часа
-const SELL_RATE = 0.20; // 20% от стоимости подарка -> в ⭐
+const SELL_RATE = 0.20; // 20%
 
-/* ==========================
-   Кейсы и призы
-   ВАЖНО: "1 звезда" -> "2 звезды" и cost=2
-========================== */
+/* ✅ Админ */
+const ADMIN_USERNAME = "@RealZanT";
+
+/* Кейсы и призы */
 const CASES = [
   {
     id: "case_1",
     icon: "🎁",
     name: "Кейс за 1⭐",
     price: 1,
+    note: "Дешёвое часто. 1⭐ выпадает очень часто.", // (✅ описание больше не показываем)
     gifts: [
+      /* ✅ было 1 звезда -> стало 2 звезды */
       {id:"g_star2", emoji:"⭐", name:"2 звезды", cost:2,  weight:70, isStars:true},
       {id:"g_heart", emoji:"💝", name:"Сердце",  cost:15, weight:30},
       {id:"g_lolli", emoji:"🍭", name:"Леденец", cost:560, weight:16},
@@ -621,6 +545,7 @@ const CASES = [
     icon: "🧸",
     name: "Кейс за 5⭐",
     price: 5,
+    note: "Средние призы",
     gifts: [
       {id:"g_cake2", emoji:"🍰", name:"Торт с вишней", cost:780,  weight:18},
       {id:"g_flwr2", emoji:"🌸", name:"Цветок",       cost:1280, weight:16},
@@ -635,6 +560,7 @@ const CASES = [
     icon: "💝",
     name: "Кейс за 40⭐",
     price: 40,
+    note: "Топ призы чаще, чем в дешёвых",
     gifts: [
       {id:"g_bear",  emoji:"🧸", name:"Мишка",        cost:5500, weight:6},
       {id:"g_ring2", emoji:"💍", name:"Кольцо",       cost:3900, weight:10},
@@ -647,9 +573,11 @@ const CASES = [
 ];
 
 /* ==========================
-   HELPERS
+   ПЕРСИСТЕНТНОСТЬ / USER
 ========================== */
-function safeJsonParse(s, fallback){ try { return JSON.parse(s); } catch { return fallback; } }
+function safeJsonParse(s, fallback){
+  try { return JSON.parse(s); } catch { return fallback; }
+}
 function nowMs(){ return Date.now(); }
 function fmtTimeLeft(ms){
   ms = Math.max(0, ms);
@@ -660,32 +588,7 @@ function fmtTimeLeft(ms){
   const pad = (x)=>String(x).padStart(2,"0");
   return `${pad(h)}:${pad(m)}:${pad(s)}`;
 }
-function escapeHtml(str){
-  return String(str)
-    .replaceAll("&","&amp;")
-    .replaceAll("<","&lt;")
-    .replaceAll(">","&gt;")
-    .replaceAll('"',"&quot;")
-    .replaceAll("'","&#039;");
-}
-function clamp(n,a,b){ return Math.max(a, Math.min(b, n)); }
-function easeOutCubic(t){ return 1 - Math.pow(1 - t, 3); }
-function animate(ms, step){
-  return new Promise((resolve) => {
-    const start = performance.now();
-    function frame(now){
-      const t = clamp((now - start) / ms, 0, 1);
-      step(t);
-      if (t < 1) requestAnimationFrame(frame);
-      else resolve();
-    }
-    requestAnimationFrame(frame);
-  });
-}
 
-/* ==========================
-   TELEGRAM USER
-========================== */
 function getTelegramUser(){
   const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
   if (!tg) return null;
@@ -702,6 +605,7 @@ function getTelegramUser(){
     photo_url: u.photo_url || ""
   };
 }
+
 function ensureGuestUser(){
   const key = "eg_guest_id";
   let id = localStorage.getItem(key);
@@ -719,32 +623,47 @@ function initUser(){
   const tgUser = getTelegramUser();
   USER = tgUser ? tgUser : ensureGuestUser();
 
-  IS_ADMIN = (USER.username === "@RealZanT");
+  IS_ADMIN = (USER.username === ADMIN_USERNAME);
 
   const name = [USER.first_name, USER.last_name].filter(Boolean).join(" ").trim() || "Пользователь";
+  const nick = USER.username ? USER.username : "";
   const sub = tgUser
-    ? `${USER.username ? USER.username + " • " : ""}${earned} звёзд заработано`
-    : `Вход: Локальный гость`;
+    ? `Telegram: ${nick || name}`.trim()
+    : `Вход: Локальный гость (вне Telegram)`;
 
-  document.getElementById("headName").textContent = (USER.username || name || "Easy Gift");
   document.getElementById("subTitle").textContent = sub;
-  document.getElementById("userName").textContent = `${name} ${USER.username}`.trim();
+  document.getElementById("userName").textContent = `${name} ${nick}`.trim();
   document.getElementById("userIdLine").textContent = `ID: ${USER.id}`;
 
-  // аватар
+  /* ✅ превью (аватар) сверху */
   const avatar = document.getElementById("avatar");
   const fallback = document.getElementById("avatarFallback");
   if (USER.photo_url){
     fallback.style.display = "none";
     avatar.innerHTML = `<img src="${escapeHtml(USER.photo_url)}" alt="avatar">`;
   } else {
-    fallback.textContent = (USER.username || name || "EG").replace("@","").slice(0,2).toUpperCase();
+    fallback.textContent = (nick || name || "EG").replace("@","").slice(0,2).toUpperCase();
+  }
+
+  /* ✅ админ блок в профиле */
+  const adminBlock = document.getElementById("adminBlock");
+  if (adminBlock) adminBlock.style.display = IS_ADMIN ? "" : "none";
+
+  /* ✅ если не админ — кнопка пополнения не работает */
+  const addBtn = document.getElementById("addStarsBtn");
+  if (addBtn){
+    if (!IS_ADMIN){
+      addBtn.textContent = "+ ⭐";
+      addBtn.title = "Недоступно";
+    } else {
+      addBtn.title = "Админ пополнение";
+    }
   }
 
   const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
   if (tg){
-    try { tg.setHeaderColor("#151b22"); } catch {}
-    try { tg.setBackgroundColor("#151b22"); } catch {}
+    try { tg.setHeaderColor("#0f1720"); } catch {}
+    try { tg.setBackgroundColor("#0f1720"); } catch {}
   }
 }
 
@@ -752,14 +671,13 @@ function initUser(){
 function kBalance(){ return `eg_balance_${USER.id}`; }
 function kInv(){ return `eg_inventory_${USER.id}`; }
 function kLastSpin(){ return `eg_lastSpin_${USER.id}`; }
-function kEarned(){ return `eg_earned_${USER.id}`; }
 
 /* ==========================
-   STATE
+   СОСТОЯНИЕ
 ========================== */
 const els = {
   stars: document.getElementById("stars"),
-  plusBtn: document.getElementById("plusBtn"),
+  addStarsBtn: document.getElementById("addStarsBtn"),
   casesRow: document.getElementById("casesRow"),
   caseBadge: document.getElementById("caseBadge"),
   cooldownBadge: document.getElementById("cooldownBadge"),
@@ -783,31 +701,23 @@ const els = {
   keepBtn: document.getElementById("keepBtn"),
   sellBtn: document.getElementById("sellBtn"),
 
-  // admin
-  adminSetStars: document.getElementById("adminSetStars"),
-  adminApplyStars: document.getElementById("adminApplyStars"),
-  adminAdd10: document.getElementById("adminAdd10"),
+  adminAdd100: document.getElementById("adminAdd100"),
   adminResetCd: document.getElementById("adminResetCd"),
-  adminWipeAll: document.getElementById("adminWipeAll"),
-  adminExport: document.getElementById("adminExport"),
 };
 
 let stars = 0;
 let inventory = [];
 let activeCase = CASES[0];
 let isSpinning = false;
+
 let pendingGift = null;
-let earned = 0;
 
 /* ==========================
    STORAGE
-   Стартовый баланс: 1⭐
 ========================== */
 function loadAll(){
-  const savedEarned = Number(localStorage.getItem(kEarned()));
-  earned = Number.isFinite(savedEarned) ? savedEarned : 0;
-
   const savedBal = Number(localStorage.getItem(kBalance()));
+  /* ✅ стартовый баланс = 1 */
   stars = Number.isFinite(savedBal) ? savedBal : 1;
 
   inventory = safeJsonParse(localStorage.getItem(kInv()), []);
@@ -815,91 +725,43 @@ function loadAll(){
 
   updateStarsUI();
 }
-function saveBalance(){ localStorage.setItem(kBalance(), String(stars)); }
-function saveInventory(){ localStorage.setItem(kInv(), JSON.stringify(inventory)); }
-function saveEarned(){ localStorage.setItem(kEarned(), String(earned)); }
 
-function updateStarsUI(){ els.stars.textContent = String(stars); }
+function saveBalance(){
+  localStorage.setItem(kBalance(), String(stars));
+}
+function saveInventory(){
+  localStorage.setItem(kInv(), JSON.stringify(inventory));
+}
+
+function updateStarsUI(){
+  els.stars.textContent = String(stars);
+}
 
 /* ==========================
-   NAV / PAGES
+   UI — tabs
 ========================== */
-function setPage(name){
-  document.querySelectorAll(".page").forEach(p=>p.style.display="none");
-  const el = document.getElementById("page_"+name);
-  if (el) el.style.display = "";
-
-  document.querySelectorAll(".navItem").forEach(n=>{
-    const isActive = (n.dataset.page === name) || (name==="main" && n.dataset.page==="main");
-    n.classList.toggle("active", isActive && (n.textContent.includes("Главная") || n.textContent.includes("Лотерея") ? name==="main" : true));
+function setTab(name){
+  document.querySelectorAll(".tab").forEach(t=>{
+    t.classList.toggle("active", t.dataset.tab === name);
   });
-
+  document.querySelectorAll(".tabPage").forEach(p=>p.style.display="none");
+  document.getElementById("tab_"+name).style.display = "";
   if (name === "profile") renderInventory();
 }
-document.querySelectorAll(".navItem").forEach(n=>{
-  n.addEventListener("click", ()=>{
-    const pg = n.dataset.page;
-    // Лотерея в твоём демо — это та же главная страница со спином
-    if (pg === "main") setPage("main");
-    else setPage(pg);
-  });
+document.querySelectorAll(".tab").forEach(t=>{
+  t.addEventListener("click", ()=> setTab(t.dataset.tab));
 });
 
 /* ==========================
-   COOLDOWN 24ч
+   РУЛЕТКА / ШАНС
 ========================== */
-function getLastSpinMs(){
-  const v = Number(localStorage.getItem(kLastSpin()));
-  return Number.isFinite(v) ? v : 0;
-}
-function setLastSpinMs(ms){ localStorage.setItem(kLastSpin(), String(ms)); }
-function getCooldownLeftMs(){
-  const last = getLastSpinMs();
-  if (!last) return 0;
-  const left = (last + COOLDOWN_MS) - nowMs();
-  return Math.max(0, left);
-}
-function canSpinNow(){ return getCooldownLeftMs() <= 0; }
-function updateCooldownUI(){
-  const left = getCooldownLeftMs();
-  if (left <= 0){
-    els.cooldownBadge.textContent = "Доступно";
-    els.spinBtn.disabled = false;
-    return;
-  }
-  els.cooldownBadge.textContent = `Через ${fmtTimeLeft(left)}`;
-  els.spinBtn.disabled = true;
-}
-setInterval(updateCooldownUI, 500);
-
-/* ==========================
-   CASES UI (без описания)
-========================== */
-function renderCases(){
-  els.casesRow.innerHTML = CASES.map(c => `
-    <div class="caseCard ${c.id === activeCase.id ? "active" : ""}" data-id="${c.id}">
-      <div class="caseArt">${escapeHtml(c.icon)}</div>
-      <div class="caseInfo">
-        <div class="caseName">${escapeHtml(c.name)}</div>
-        <div class="priceLine">
-          <img class="starImg" src="img/Star.png" alt="⭐" onerror="this.style.display='none'">
-          <span>${c.price}</span>
-          <small>за спин</small>
-        </div>
-      </div>
-    </div>
-  `).join("");
-
-  [...els.casesRow.querySelectorAll(".caseCard")].forEach(card=>{
-    card.addEventListener("click", ()=>{
-      const id = card.dataset.id;
-      const found = CASES.find(x=>x.id===id);
-      if (!found) return;
-      activeCase = found;
-      renderCases();
-      refreshRoulette();
-    });
-  });
+function escapeHtml(str){
+  return String(str)
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
 }
 
 function weightedPick(list){
@@ -942,6 +804,82 @@ function getCurrentTranslateX(){
   const parts = m[1].split(",").map(x => Number(x.trim()));
   return parts[4] || 0;
 }
+function clamp(n,a,b){ return Math.max(a, Math.min(b, n)); }
+function easeOutCubic(t){ return 1 - Math.pow(1 - t, 3); }
+function animate(ms, step){
+  return new Promise((resolve) => {
+    const start = performance.now();
+    function frame(now){
+      const t = clamp((now - start) / ms, 0, 1);
+      step(t);
+      if (t < 1) requestAnimationFrame(frame);
+      else resolve();
+    }
+    requestAnimationFrame(frame);
+  });
+}
+
+/* ==========================
+   24 ЧАСА (Cooldown)
+========================== */
+function getLastSpinMs(){
+  const v = Number(localStorage.getItem(kLastSpin()));
+  return Number.isFinite(v) ? v : 0;
+}
+function setLastSpinMs(ms){
+  localStorage.setItem(kLastSpin(), String(ms));
+}
+function getCooldownLeftMs(){
+  const last = getLastSpinMs();
+  if (!last) return 0;
+  const left = (last + COOLDOWN_MS) - nowMs();
+  return Math.max(0, left);
+}
+function canSpinNow(){
+  return getCooldownLeftMs() <= 0;
+}
+function updateCooldownUI(){
+  const left = getCooldownLeftMs();
+  if (left <= 0){
+    els.cooldownBadge.textContent = "Доступно";
+    els.spinBtn.disabled = false;
+    return;
+  }
+  els.cooldownBadge.textContent = `Через ${fmtTimeLeft(left)}`;
+  els.spinBtn.disabled = true;
+}
+setInterval(updateCooldownUI, 500);
+
+/* ==========================
+   Кейсы (✅ без описания)
+========================== */
+function renderCases(){
+  els.casesRow.innerHTML = CASES.map(c => `
+    <div class="caseCard ${c.id === activeCase.id ? "active" : ""}" data-id="${c.id}">
+      <div class="caseArt">${escapeHtml(c.icon)}</div>
+      <div class="caseInfo">
+        <div class="caseName">${escapeHtml(c.name)}</div>
+        <!-- ✅ убрал caseSub (описание) -->
+        <div class="priceLine">
+          <img class="starImg" src="img/Star.png" alt="⭐" onerror="this.style.display='none'">
+          <span>${c.price}</span>
+          <small>за спин</small>
+        </div>
+      </div>
+    </div>
+  `).join("");
+
+  [...els.casesRow.querySelectorAll(".caseCard")].forEach(card=>{
+    card.addEventListener("click", ()=>{
+      const id = card.dataset.id;
+      const found = CASES.find(x=>x.id===id);
+      if (!found) return;
+      activeCase = found;
+      renderCases();
+      refreshRoulette();
+    });
+  });
+}
 
 function refreshRoulette(){
   els.caseBadge.textContent = `Кейс: ${activeCase.name} • цена ${activeCase.price}`;
@@ -956,15 +894,12 @@ function refreshRoulette(){
 }
 
 /* ==========================
-   MODAL keep/sell
+   Модалка “оставить/продать”
 ========================== */
-function sellItemValue(cost){
-  return Math.max(1, Math.floor((Number(cost)||0) * SELL_RATE));
-}
 function openModal(gift, caseObj){
   pendingGift = { gift, caseObj };
-  const sellValue = sellItemValue(gift.cost || 0);
 
+  const sellValue = Math.max(1, Math.floor((gift.cost || 0) * SELL_RATE));
   els.modalEmoji.textContent = gift.emoji || "🎁";
   els.modalName.textContent = gift.name || "Подарок";
   els.modalInfo.textContent = `Из кейса: ${caseObj.name} • Продажа: ${Math.round(SELL_RATE*100)}% от стоимости`;
@@ -978,10 +913,12 @@ function closeModal(){
   pendingGift = null;
 }
 els.modalClose.addEventListener("click", closeModal);
-els.modalBack.addEventListener("click", (e)=>{ if (e.target === els.modalBack) closeModal(); });
+els.modalBack.addEventListener("click", (e)=>{
+  if (e.target === els.modalBack) closeModal();
+});
 
 /* ==========================
-   INVENTORY
+   Инвентарь / профиль
 ========================== */
 function addToInventory(gift, caseObj){
   const item = {
@@ -996,6 +933,11 @@ function addToInventory(gift, caseObj){
   inventory.unshift(item);
   saveInventory();
 }
+
+function sellItemValue(cost){
+  return Math.max(1, Math.floor((Number(cost)||0) * SELL_RATE));
+}
+
 function renderInventory(){
   if (!inventory.length){
     els.invWrap.innerHTML = `<div class="empty">Инвентарь пуст. Сначала выбей подарок и нажми “Оставить”.</div>`;
@@ -1040,24 +982,17 @@ function renderInventory(){
 
       inventory.splice(idx, 1);
       saveInventory();
-
       stars += gain;
-      earned += gain;
-      saveEarned();
-
       saveBalance();
       updateStarsUI();
       renderInventory();
       alert(`Продано: +${gain} ⭐`);
-      // обновим подпись в шапке
-      document.getElementById("subTitle").textContent = `${USER.username ? USER.username + " • " : ""}${earned} звёзд заработано`;
     });
   });
 }
 
 /* ==========================
-   SPIN
-   ВАЖНО: если выпали ⭐ (isStars:true) — сразу начисляем на баланс
+   Spin
 ========================== */
 async function spin({demo=false} = {}){
   if (isSpinning) return;
@@ -1121,16 +1056,13 @@ async function spin({demo=false} = {}){
     setLastSpinMs(nowMs());
     updateCooldownUI();
 
-    // ⭐ выпали — сразу начисляем, без модалки
+    /* ✅ если выпали звёзды — сразу начисляем на баланс (без модалки) */
     if (picked.gift && picked.gift.isStars){
-      const gainStars = Math.max(1, Number(picked.gift.cost || 0));
-      stars += gainStars;
-      earned += gainStars;
-      saveEarned();
+      const gain = Math.max(1, Number(picked.gift.cost || 0));
+      stars += gain;
       saveBalance();
       updateStarsUI();
-      alert(`Вы выиграли: +${gainStars} ⭐`);
-      document.getElementById("subTitle").textContent = `${USER.username ? USER.username + " • " : ""}${earned} звёзд заработано`;
+      alert(`Выигрыш: +${gain} ⭐`);
     } else {
       openModal(picked.gift, activeCase);
     }
@@ -1144,6 +1076,21 @@ async function spin({demo=false} = {}){
 els.spinBtn.addEventListener("click", ()=> spin({demo:false}));
 els.demoBtn.addEventListener("click", ()=> spin({demo:true}));
 
+/* ✅ античит: пополнение только админ */
+els.addStarsBtn.addEventListener("click", ()=>{
+  if (!IS_ADMIN){
+    alert("Пополнение недоступно.");
+    return;
+  }
+  const v = prompt("Сколько звёзд добавить? (админ)", "40");
+  if (v === null) return;
+  const n = Math.floor(Number(v));
+  if (!Number.isFinite(n) || n <= 0) return;
+  stars += n;
+  saveBalance();
+  updateStarsUI();
+});
+
 /* Модалка: оставить/продать */
 els.keepBtn.addEventListener("click", ()=>{
   if (!pendingGift) return;
@@ -1153,125 +1100,64 @@ els.keepBtn.addEventListener("click", ()=>{
 });
 els.sellBtn.addEventListener("click", ()=>{
   if (!pendingGift) return;
-  const gain = sellItemValue(pendingGift.gift.cost || 0);
-
+  const gain = Math.max(1, Math.floor((pendingGift.gift.cost || 0) * SELL_RATE));
   stars += gain;
-  earned += gain;
-  saveEarned();
-
   saveBalance();
   updateStarsUI();
   closeModal();
   alert(`Продано: +${gain} ⭐`);
-  document.getElementById("subTitle").textContent = `${USER.username ? USER.username + " • " : ""}${earned} звёзд заработано`;
 });
 
 /* Экспорт профиля */
-function exportJSON(){
+els.exportBtn.addEventListener("click", ()=>{
   const data = {
     user: USER,
     stars,
-    earned,
     inventory,
     lastSpinMs: getLastSpinMs(),
     exportedAt: new Date().toISOString()
   };
   const txt = JSON.stringify(data, null, 2);
   prompt("Скопируй экспорт JSON:", txt);
-}
-els.exportBtn.addEventListener("click", exportJSON);
+});
 
 /* Сброс локальных данных */
-function wipeLocal(){
+els.wipeBtn.addEventListener("click", ()=>{
   const ok = confirm("Точно сбросить профиль? (удалит звёзды/инвентарь/кд локально)");
   if (!ok) return;
   localStorage.removeItem(kBalance());
   localStorage.removeItem(kInv());
   localStorage.removeItem(kLastSpin());
-  localStorage.removeItem(kEarned());
   loadAll();
   renderInventory();
   updateCooldownUI();
   alert("Сброшено.");
-  document.getElementById("subTitle").textContent = `${USER.username ? USER.username + " • " : ""}${earned} звёзд заработано`;
-}
-els.wipeBtn.addEventListener("click", wipeLocal);
-
-/* ==========================
-   ПЛЮС КНОПКА (без читов)
-   - обычным: заглушка
-   - админ: открывает админ-страницу
-========================== */
-els.plusBtn.addEventListener("click", ()=>{
-  if (!IS_ADMIN){
-    alert("Пополнение временно недоступно.");
-    return;
-  }
-  setPage("admin");
 });
 
-/* ==========================
-   ADMIN PANEL (@RealZanT)
-========================== */
-function ensureAdminVisibility(){
-  // если не админ — вообще скрываем страницу админа из DOM навигации
-  if (!IS_ADMIN){
-    const p = document.getElementById("page_admin");
-    if (p) p.style.display = "none";
-    return;
-  }
-
-  // добавим 6-ю кнопку в нижнее меню не будем (чтобы сетка не ломалась),
-  // админ заходит по кнопке "+" сверху.
-  els.plusBtn.title = "Админ панель";
+/* ✅ админ кнопки в профиле */
+if (els.adminAdd100){
+  els.adminAdd100.addEventListener("click", ()=>{
+    if (!IS_ADMIN) return;
+    stars += 100;
+    saveBalance();
+    updateStarsUI();
+    alert("+100 ⭐");
+  });
 }
-
-if (els.adminApplyStars){
-  els.adminApplyStars.addEventListener("click", ()=>{
-    if (!IS_ADMIN) return;
-    const v = Number(els.adminSetStars.value);
-    if (!Number.isFinite(v) || v < 0) return alert("Введите число >= 0");
-    stars = Math.floor(v);
-    saveBalance();
-    updateStarsUI();
-    alert("Баланс обновлён ✅");
-  });
-
-  els.adminAdd10.addEventListener("click", ()=>{
-    if (!IS_ADMIN) return;
-    stars += 10;
-    saveBalance();
-    updateStarsUI();
-    alert("+10 ⭐");
-  });
-
+if (els.adminResetCd){
   els.adminResetCd.addEventListener("click", ()=>{
     if (!IS_ADMIN) return;
     setLastSpinMs(0);
     updateCooldownUI();
     alert("КД сброшен ✅");
   });
-
-  els.adminWipeAll.addEventListener("click", ()=>{
-    if (!IS_ADMIN) return;
-    const ok = confirm("Стереть профиль текущего юзера полностью?");
-    if (!ok) return;
-    wipeLocal();
-  });
-
-  els.adminExport.addEventListener("click", ()=>{
-    if (!IS_ADMIN) return;
-    exportJSON();
-  });
 }
 
 /* ==========================
    INIT
 ========================== */
-loadAll();     // сначала данные (earned тоже)
-initUser();    // потом user (для подписи)
-ensureAdminVisibility();
-
+initUser();
+loadAll();
 renderCases();
 refreshRoulette();
 updateCooldownUI();
