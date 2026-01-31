@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1" />
-  <title>Easy Gift — кейсы, профиль, 24ч</title>
+  <title>Easy Gift — Mini App</title>
 
-  <!-- Telegram Mini App SDK (если откроют в Telegram) -->
+  <!-- Telegram Mini App SDK -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
   <style>
@@ -28,22 +28,22 @@
       background:linear-gradient(180deg,#0b121a, #0f1720 40%, #0b121a);
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
       color:var(--text);
-      padding:16px;
+      padding:14px;
+      padding-bottom:86px; /* место под нижнее меню */
     }
     .app{max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:12px;}
 
+    /* ===== header like photos ===== */
     .topbar{
-      background:rgba(255,255,255,0.04);
+      background:rgba(255,255,255,0.03);
       border:1px solid rgba(255,255,255,0.06);
-      border-radius:var(--radius);
-      padding:12px 14px;
+      border-radius:18px;
+      padding:12px 12px;
       display:flex;
       align-items:center;
       justify-content:space-between;
       gap:10px;
     }
-
-    /* ✅ добавил аватар+ник слева, но общий стиль НЕ ломал */
     .topLeft{
       display:flex;
       align-items:center;
@@ -63,18 +63,14 @@
       font-weight:900;
       user-select:none;
     }
-    .avatar img{
-      width:100%;
-      height:100%;
-      object-fit:cover;
-      display:block;
-    }
+    .avatar img{width:100%;height:100%;object-fit:cover;display:block;}
 
     .title{display:flex;flex-direction:column;gap:2px;line-height:1.1;min-width:0;}
     .title b{font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
     .title small{color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 
     .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end;}
+    .balanceWrap{gap:8px;}
     .pill{
       padding:8px 10px;
       border-radius:999px;
@@ -90,6 +86,22 @@
       width:18px;height:18px;object-fit:contain;display:block;
       filter: drop-shadow(0 2px 6px rgba(0,0,0,.35));
     }
+    .plusBtn{
+      width:44px;height:44px;
+      border-radius:999px;
+      border:1px solid rgba(51,166,255,0.35);
+      background:rgba(51,166,255,0.95);
+      color:#06121b;
+      font-weight:1000;
+      font-size:22px;
+      cursor:pointer;
+      display:grid;place-items:center;
+      box-shadow:0 10px 20px rgba(0,0,0,.25);
+      user-select:none;
+      touch-action:manipulation;
+    }
+    .plusBtn:disabled{opacity:.45;cursor:not-allowed;}
+
     .btn{
       border:0;
       border-radius:12px;
@@ -115,7 +127,7 @@
 
     .tabs{
       display:flex;gap:8px;flex-wrap:wrap;
-      background:rgba(255,255,255,0.04);
+      background:rgba(255,255,255,0.03);
       border:1px solid rgba(255,255,255,0.06);
       border-radius:999px;
       padding:6px;
@@ -136,9 +148,9 @@
     }
 
     .card{
-      background:rgba(255,255,255,0.04);
+      background:rgba(255,255,255,0.03);
       border:1px solid rgba(255,255,255,0.06);
-      border-radius:var(--radius);
+      border-radius:18px;
       padding:12px;
     }
     .card h3{
@@ -187,8 +199,6 @@
     }
     .caseInfo{min-width:0;display:flex;flex-direction:column;gap:4px;}
     .caseName{font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-    /* ✅ caseSub оставляю в CSS, но в HTML больше НЕ вывожу (описание удалено) */
-    .caseSub{color:var(--muted);font-size:12px;line-height:1.2;}
     .priceLine{display:flex;align-items:center;gap:6px;font-weight:900;}
     .priceLine small{color:var(--muted);font-weight:700}
 
@@ -338,7 +348,7 @@
       margin-top:10px;
     }
 
-    /* Модалка "оставить/продать" */
+    /* Модалка keep/sell */
     .modalBack{
       position:fixed;inset:0;
       background:rgba(0,0,0,0.55);
@@ -368,31 +378,57 @@
       display:grid;place-items:center;font-size:40px;flex:0 0 auto;
     }
     .modalActions{margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;}
+
+    /* bottom nav like photos */
+    .bottomNav{
+      position:fixed;
+      left:0; right:0; bottom:0;
+      height:74px;
+      background:rgba(10,16,22,0.92);
+      border-top:1px solid rgba(255,255,255,0.06);
+      display:flex;
+      justify-content:space-around;
+      align-items:center;
+      padding:8px 10px 10px;
+      z-index:999;
+      backdrop-filter: blur(10px);
+    }
+    .navItem{
+      border:0;
+      background:transparent;
+      color:rgba(231,238,247,0.55);
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+      align-items:center;
+      font-weight:900;
+      font-size:11px;
+      cursor:pointer;
+      user-select:none;
+    }
+    .navItem:disabled{opacity:.35;cursor:not-allowed;}
+    .navItem .navIco{font-size:18px;line-height:1;}
+    .navItem.active{color:rgba(51,166,255,0.95);}
   </style>
 </head>
 
 <body>
   <div class="app">
     <div class="topbar">
-      <!-- ✅ левый блок: аватар + заголовок/ник -->
       <div class="topLeft">
-        <div class="avatar" id="avatar">
-          <span id="avatarFallback">EG</span>
-        </div>
-
+        <div class="avatar" id="avatar"><span id="avatarFallback">EG</span></div>
         <div class="title">
-          <b>Easy Gift — Mini App • 24ч • Профиль</b>
-          <small id="subTitle">Подключаем Telegram пользователя…</small>
+          <b id="headerTitle">Easy Gift — Mini App</b>
+          <small id="subTitle">Загрузка…</small>
         </div>
       </div>
 
-      <div class="row">
+      <div class="row balanceWrap">
         <div class="pill" title="Баланс звёзд">
           <img class="starImg" src="img/Star.png" alt="⭐" onerror="this.style.display='none'">
           <span id="stars">0</span>
         </div>
-        <!-- ✅ античит: пополнение только админ -->
-        <button class="btn secondary" id="addStarsBtn">+ ⭐</button>
+        <button class="plusBtn" id="addStarsBtn" title="Пополнить">+</button>
       </div>
     </div>
 
@@ -406,7 +442,6 @@
       <div class="card">
         <h3>Кейсы</h3>
         <div class="casesRow" id="casesRow"></div>
-        <!-- ✅ убрал описание/подсказку под кейсами -->
       </div>
 
       <div class="card rouletteWrap">
@@ -449,7 +484,6 @@
         <div class="profileHeader">
           <div class="userBox">
             <b id="userName">—</b>
-            <div class="hint" id="userIdLine">—</div>
           </div>
 
           <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;">
@@ -464,7 +498,6 @@
 
         <div id="invWrap"></div>
 
-        <!-- ✅ мини-админ блок (видит только @RealZanT), без изменения дизайна приложения -->
         <div id="adminBlock" style="display:none;margin-top:12px;">
           <div class="hint" style="margin-bottom:8px;">Админ: @RealZanT</div>
           <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;">
@@ -494,7 +527,7 @@
             <div class="smallPrice">
               <img class="starImg" src="img/Star.png" alt="⭐" onerror="this.style.display='none'">
               <span id="modalCost">0</span>
-              <span class="hint">стоимость (gift)</span>
+              <span class="hint">стоимость</span>
             </div>
             <div class="smallPrice">
               <img class="starImg" src="img/Star.png" alt="⭐" onerror="this.style.display='none'">
@@ -512,32 +545,48 @@
     </div>
   </div>
 
+  <!-- bottom nav -->
+  <nav class="bottomNav">
+    <button class="navItem active" data-go="main">
+      <span class="navIco">🎁</span><span>Главная</span>
+    </button>
+    <button class="navItem" title="Скоро" disabled>
+      <span class="navIco">🎲</span><span>Лотерея</span>
+    </button>
+    <button class="navItem" title="Скоро" disabled>
+      <span class="navIco">⏳</span><span>Скоро</span>
+    </button>
+    <button class="navItem" title="Скоро" disabled>
+      <span class="navIco">⬆️</span><span>Апгрейд</span>
+    </button>
+    <button class="navItem" data-go="profile">
+      <span class="navIco">👤</span><span>Профиль</span>
+    </button>
+  </nav>
+
 <script>
 /* ==========================
-   НАСТРОЙКИ
+   SETTINGS
 ========================== */
-const COOLDOWN_MS = 24 * 60 * 60 * 1000; // 24 часа
+const COOLDOWN_MS = 24 * 60 * 60 * 1000; // 24ч
 const SELL_RATE = 0.20; // 20%
-
-/* ✅ Админ */
 const ADMIN_USERNAME = "@RealZanT";
 
-/* Кейсы и призы */
+/* CASES */
 const CASES = [
   {
     id: "case_1",
     icon: "🎁",
     name: "Кейс за 1⭐",
     price: 1,
-    note: "Дешёвое часто. 1⭐ выпадает очень часто.", // (✅ описание больше не показываем)
     gifts: [
-      /* ✅ было 1 звезда -> стало 2 звезды */
-      {id:"g_star2", emoji:"⭐", name:"2 звезды", cost:2,  weight:70, isStars:true},
-      {id:"g_heart", emoji:"💝", name:"Сердце",  cost:15, weight:30},
+      /* ✅ 1⭐ -> 2⭐ */
+      {id:"g_star2", emoji:"⭐", name:"2 звезды", cost:2, weight:70, isStars:true},
+      {id:"g_heart", emoji:"💝", name:"Сердце",  cost:15,  weight:30},
       {id:"g_lolli", emoji:"🍭", name:"Леденец", cost:560, weight:16},
-      {id:"g_flwr",  emoji:"🌸", name:"Цветок",  cost:1280, weight:10},
+      {id:"g_flwr",  emoji:"🌸", name:"Цветок",  cost:1280,weight:10},
       {id:"g_cake",  emoji:"🍰", name:"Торт",    cost:780, weight:12},
-      {id:"g_potion",emoji:"🧪", name:"Зелье",   cost:2300, weight:4},
+      {id:"g_potion",emoji:"🧪", name:"Зелье",   cost:2300,weight:4},
     ]
   },
   {
@@ -545,14 +594,13 @@ const CASES = [
     icon: "🧸",
     name: "Кейс за 5⭐",
     price: 5,
-    note: "Средние призы",
     gifts: [
-      {id:"g_cake2", emoji:"🍰", name:"Торт с вишней", cost:780,  weight:18},
-      {id:"g_flwr2", emoji:"🌸", name:"Цветок",       cost:1280, weight:16},
-      {id:"g_shoe",  emoji:"👠", name:"Туфли",        cost:1750, weight:12},
-      {id:"g_potion2",emoji:"🧪",name:"Зелье",        cost:2300, weight:10},
-      {id:"g_rose",  emoji:"🌹", name:"Роза в колбе", cost:3500, weight:6},
-      {id:"g_ring",  emoji:"💍", name:"Кольцо",       cost:3900, weight:4},
+      {id:"g_cake2",  emoji:"🍰", name:"Торт с вишней", cost:780,  weight:18},
+      {id:"g_flwr2",  emoji:"🌸", name:"Цветок",       cost:1280, weight:16},
+      {id:"g_shoe",   emoji:"👠", name:"Туфли",        cost:1750, weight:12},
+      {id:"g_potion2",emoji:"🧪", name:"Зелье",        cost:2300, weight:10},
+      {id:"g_rose",   emoji:"🌹", name:"Роза в колбе", cost:3500, weight:6},
+      {id:"g_ring",   emoji:"💍", name:"Кольцо",       cost:3900, weight:4},
     ]
   },
   {
@@ -560,7 +608,6 @@ const CASES = [
     icon: "💝",
     name: "Кейс за 40⭐",
     price: 40,
-    note: "Топ призы чаще, чем в дешёвых",
     gifts: [
       {id:"g_bear",  emoji:"🧸", name:"Мишка",        cost:5500, weight:6},
       {id:"g_ring2", emoji:"💍", name:"Кольцо",       cost:3900, weight:10},
@@ -573,12 +620,12 @@ const CASES = [
 ];
 
 /* ==========================
-   ПЕРСИСТЕНТНОСТЬ / USER
+   HELPERS / USER
 ========================== */
-function safeJsonParse(s, fallback){
-  try { return JSON.parse(s); } catch { return fallback; }
-}
+function safeJsonParse(s, fallback){ try { return JSON.parse(s); } catch { return fallback; } }
 function nowMs(){ return Date.now(); }
+function clamp(n,a,b){ return Math.max(a, Math.min(b, n)); }
+function easeOutCubic(t){ return 1 - Math.pow(1 - t, 3); }
 function fmtTimeLeft(ms){
   ms = Math.max(0, ms);
   const totalSec = Math.floor(ms/1000);
@@ -588,6 +635,11 @@ function fmtTimeLeft(ms){
   const pad = (x)=>String(x).padStart(2,"0");
   return `${pad(h)}:${pad(m)}:${pad(s)}`;
 }
+function escapeHtml(str){
+  return String(str)
+    .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;").replaceAll("'","&#039;");
+}
 
 function getTelegramUser(){
   const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
@@ -596,7 +648,6 @@ function getTelegramUser(){
   if (!u || !u.id) return null;
 
   try { tg.expand(); } catch {}
-
   return {
     id: String(u.id),
     username: u.username ? "@"+u.username : "",
@@ -605,7 +656,6 @@ function getTelegramUser(){
     photo_url: u.photo_url || ""
   };
 }
-
 function ensureGuestUser(){
   const key = "eg_guest_id";
   let id = localStorage.getItem(key);
@@ -619,65 +669,23 @@ function ensureGuestUser(){
 let USER = null;
 let IS_ADMIN = false;
 
-function initUser(){
-  const tgUser = getTelegramUser();
-  USER = tgUser ? tgUser : ensureGuestUser();
-
-  IS_ADMIN = (USER.username === ADMIN_USERNAME);
-
-  const name = [USER.first_name, USER.last_name].filter(Boolean).join(" ").trim() || "Пользователь";
-  const nick = USER.username ? USER.username : "";
-  const sub = tgUser
-    ? `Telegram: ${nick || name}`.trim()
-    : `Вход: Локальный гость (вне Telegram)`;
-
-  document.getElementById("subTitle").textContent = sub;
-  document.getElementById("userName").textContent = `${name} ${nick}`.trim();
-  document.getElementById("userIdLine").textContent = `ID: ${USER.id}`;
-
-  /* ✅ превью (аватар) сверху */
-  const avatar = document.getElementById("avatar");
-  const fallback = document.getElementById("avatarFallback");
-  if (USER.photo_url){
-    fallback.style.display = "none";
-    avatar.innerHTML = `<img src="${escapeHtml(USER.photo_url)}" alt="avatar">`;
-  } else {
-    fallback.textContent = (nick || name || "EG").replace("@","").slice(0,2).toUpperCase();
-  }
-
-  /* ✅ админ блок в профиле */
-  const adminBlock = document.getElementById("adminBlock");
-  if (adminBlock) adminBlock.style.display = IS_ADMIN ? "" : "none";
-
-  /* ✅ если не админ — кнопка пополнения не работает */
-  const addBtn = document.getElementById("addStarsBtn");
-  if (addBtn){
-    if (!IS_ADMIN){
-      addBtn.textContent = "+ ⭐";
-      addBtn.title = "Недоступно";
-    } else {
-      addBtn.title = "Админ пополнение";
-    }
-  }
-
-  const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
-  if (tg){
-    try { tg.setHeaderColor("#0f1720"); } catch {}
-    try { tg.setBackgroundColor("#0f1720"); } catch {}
-  }
-}
-
-/* ключи под пользователя */
 function kBalance(){ return `eg_balance_${USER.id}`; }
 function kInv(){ return `eg_inventory_${USER.id}`; }
 function kLastSpin(){ return `eg_lastSpin_${USER.id}`; }
+function kEarned(){ return `eg_earned_${USER.id}`; }
 
 /* ==========================
-   СОСТОЯНИЕ
+   STATE
 ========================== */
 const els = {
+  headerTitle: document.getElementById("headerTitle"),
+  subTitle: document.getElementById("subTitle"),
+  avatar: document.getElementById("avatar"),
+  avatarFallback: document.getElementById("avatarFallback"),
+
   stars: document.getElementById("stars"),
   addStarsBtn: document.getElementById("addStarsBtn"),
+
   casesRow: document.getElementById("casesRow"),
   caseBadge: document.getElementById("caseBadge"),
   cooldownBadge: document.getElementById("cooldownBadge"),
@@ -687,6 +695,8 @@ const els = {
   demoBtn: document.getElementById("demoBtn"),
   resultText: document.getElementById("resultText"),
   resultMeta: document.getElementById("resultMeta"),
+
+  userName: document.getElementById("userName"),
   invWrap: document.getElementById("invWrap"),
   exportBtn: document.getElementById("exportBtn"),
   wipeBtn: document.getElementById("wipeBtn"),
@@ -701,44 +711,91 @@ const els = {
   keepBtn: document.getElementById("keepBtn"),
   sellBtn: document.getElementById("sellBtn"),
 
+  adminBlock: document.getElementById("adminBlock"),
   adminAdd100: document.getElementById("adminAdd100"),
   adminResetCd: document.getElementById("adminResetCd"),
 };
 
 let stars = 0;
+let earned = 0;
 let inventory = [];
 let activeCase = CASES[0];
 let isSpinning = false;
-
 let pendingGift = null;
+
+/* ==========================
+   INIT USER
+========================== */
+function initUser(){
+  const tgUser = getTelegramUser();
+  USER = tgUser ? tgUser : ensureGuestUser();
+  IS_ADMIN = (USER.username === ADMIN_USERNAME);
+
+  const name = [USER.first_name, USER.last_name].filter(Boolean).join(" ").trim() || "Пользователь";
+  const nick = USER.username ? USER.username : "";
+  const displayName = nick || name;
+
+  // avatar
+  if (USER.photo_url){
+    els.avatarFallback.style.display = "none";
+    els.avatar.innerHTML = `<img src="${escapeHtml(USER.photo_url)}" alt="avatar">`;
+  } else {
+    els.avatarFallback.textContent = (displayName.replace("@","").slice(0,2) || "EG").toUpperCase();
+  }
+
+  // header title with nick
+  els.headerTitle.textContent = `Easy Gift — Mini App • ${displayName}`;
+  els.userName.textContent = `${name} ${nick}`.trim();
+
+  // admin UI
+  els.adminBlock.style.display = IS_ADMIN ? "" : "none";
+  els.addStarsBtn.disabled = !IS_ADMIN;
+
+  // tg colors
+  const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+  if (tg){
+    try { tg.setHeaderColor("#0f1720"); } catch {}
+    try { tg.setBackgroundColor("#0f1720"); } catch {}
+  }
+}
 
 /* ==========================
    STORAGE
 ========================== */
 function loadAll(){
   const savedBal = Number(localStorage.getItem(kBalance()));
-  /* ✅ стартовый баланс = 1 */
-  stars = Number.isFinite(savedBal) ? savedBal : 1;
+  stars = Number.isFinite(savedBal) ? savedBal : 1; // ✅ у всех старт 1⭐
+
+  const savedEarned = Number(localStorage.getItem(kEarned()));
+  earned = Number.isFinite(savedEarned) ? savedEarned : 0;
 
   inventory = safeJsonParse(localStorage.getItem(kInv()), []);
   if (!Array.isArray(inventory)) inventory = [];
 
   updateStarsUI();
+  updateHeaderEarned();
 }
-
-function saveBalance(){
-  localStorage.setItem(kBalance(), String(stars));
+function saveBalance(){ localStorage.setItem(kBalance(), String(stars)); }
+function saveEarned(){ localStorage.setItem(kEarned(), String(earned)); }
+function saveInventory(){ localStorage.setItem(kInv(), JSON.stringify(inventory)); }
+function addEarned(n){
+  const x = Number(n)||0;
+  if (x <= 0) return;
+  earned += x;
+  saveEarned();
+  updateHeaderEarned();
 }
-function saveInventory(){
-  localStorage.setItem(kInv(), JSON.stringify(inventory));
+function updateStarsUI(){ els.stars.textContent = String(stars); }
+function getDisplayName(){
+  const name = [USER.first_name, USER.last_name].filter(Boolean).join(" ").trim() || "Пользователь";
+  return USER.username || name;
 }
-
-function updateStarsUI(){
-  els.stars.textContent = String(stars);
+function updateHeaderEarned(){
+  els.subTitle.textContent = `${getDisplayName()} • ${earned} ⭐ заработано`;
 }
 
 /* ==========================
-   UI — tabs
+   TABS
 ========================== */
 function setTab(name){
   document.querySelectorAll(".tab").forEach(t=>{
@@ -752,18 +809,19 @@ document.querySelectorAll(".tab").forEach(t=>{
   t.addEventListener("click", ()=> setTab(t.dataset.tab));
 });
 
-/* ==========================
-   РУЛЕТКА / ШАНС
-========================== */
-function escapeHtml(str){
-  return String(str)
-    .replaceAll("&","&amp;")
-    .replaceAll("<","&lt;")
-    .replaceAll(">","&gt;")
-    .replaceAll('"',"&quot;")
-    .replaceAll("'","&#039;");
-}
+/* bottom nav */
+document.querySelectorAll(".bottomNav .navItem[data-go]").forEach(btn=>{
+  btn.addEventListener("click", ()=>{
+    const go = btn.getAttribute("data-go");
+    document.querySelectorAll(".bottomNav .navItem").forEach(x=>x.classList.remove("active"));
+    btn.classList.add("active");
+    setTab(go);
+  });
+});
 
+/* ==========================
+   ROULETTE
+========================== */
 function weightedPick(list){
   const total = list.reduce((s,g)=>s + (g.weight || 1), 0);
   let r = Math.random() * total;
@@ -804,8 +862,7 @@ function getCurrentTranslateX(){
   const parts = m[1].split(",").map(x => Number(x.trim()));
   return parts[4] || 0;
 }
-function clamp(n,a,b){ return Math.max(a, Math.min(b, n)); }
-function easeOutCubic(t){ return 1 - Math.pow(1 - t, 3); }
+
 function animate(ms, step){
   return new Promise((resolve) => {
     const start = performance.now();
@@ -820,7 +877,7 @@ function animate(ms, step){
 }
 
 /* ==========================
-   24 ЧАСА (Cooldown)
+   COOLDOWN 24H
 ========================== */
 function getLastSpinMs(){
   const v = Number(localStorage.getItem(kLastSpin()));
@@ -836,9 +893,15 @@ function getCooldownLeftMs(){
   return Math.max(0, left);
 }
 function canSpinNow(){
+  if (IS_ADMIN) return true; // ✅ бесконечный ролл
   return getCooldownLeftMs() <= 0;
 }
 function updateCooldownUI(){
+  if (IS_ADMIN){
+    els.cooldownBadge.textContent = "∞ Ролл";
+    els.spinBtn.disabled = false;
+    return;
+  }
   const left = getCooldownLeftMs();
   if (left <= 0){
     els.cooldownBadge.textContent = "Доступно";
@@ -851,7 +914,7 @@ function updateCooldownUI(){
 setInterval(updateCooldownUI, 500);
 
 /* ==========================
-   Кейсы (✅ без описания)
+   CASES
 ========================== */
 function renderCases(){
   els.casesRow.innerHTML = CASES.map(c => `
@@ -859,7 +922,6 @@ function renderCases(){
       <div class="caseArt">${escapeHtml(c.icon)}</div>
       <div class="caseInfo">
         <div class="caseName">${escapeHtml(c.name)}</div>
-        <!-- ✅ убрал caseSub (описание) -->
         <div class="priceLine">
           <img class="starImg" src="img/Star.png" alt="⭐" onerror="this.style.display='none'">
           <span>${c.price}</span>
@@ -894,7 +956,7 @@ function refreshRoulette(){
 }
 
 /* ==========================
-   Модалка “оставить/продать”
+   MODAL keep/sell
 ========================== */
 function openModal(gift, caseObj){
   pendingGift = { gift, caseObj };
@@ -918,7 +980,7 @@ els.modalBack.addEventListener("click", (e)=>{
 });
 
 /* ==========================
-   Инвентарь / профиль
+   INVENTORY
 ========================== */
 function addToInventory(gift, caseObj){
   const item = {
@@ -933,11 +995,9 @@ function addToInventory(gift, caseObj){
   inventory.unshift(item);
   saveInventory();
 }
-
 function sellItemValue(cost){
   return Math.max(1, Math.floor((Number(cost)||0) * SELL_RATE));
 }
-
 function renderInventory(){
   if (!inventory.length){
     els.invWrap.innerHTML = `<div class="empty">Инвентарь пуст. Сначала выбей подарок и нажми “Оставить”.</div>`;
@@ -957,11 +1017,11 @@ function renderInventory(){
           </div>
 
           <div class="invRight">
-            <div class="smallPrice" title="Стоимость подарка">
+            <div class="smallPrice" title="Стоимость">
               <img class="starImg" src="img/Star.png" alt="⭐" onerror="this.style.display='none'">
               <span>${it.cost}</span>
             </div>
-            <div class="smallPrice" title="Цена продажи">
+            <div class="smallPrice" title="Продажа">
               <img class="starImg" src="img/Star.png" alt="⭐" onerror="this.style.display='none'">
               <span>${sellItemValue(it.cost)}</span>
             </div>
@@ -985,6 +1045,9 @@ function renderInventory(){
       stars += gain;
       saveBalance();
       updateStarsUI();
+
+      addEarned(gain);
+
       renderInventory();
       alert(`Продано: +${gain} ⭐`);
     });
@@ -992,12 +1055,14 @@ function renderInventory(){
 }
 
 /* ==========================
-   Spin
+   SPIN
 ========================== */
 async function spin({demo=false} = {}){
   if (isSpinning) return;
 
-  if (!demo){
+  const adminFree = IS_ADMIN && !demo;
+
+  if (!demo && !adminFree){
     if (!canSpinNow()){
       updateCooldownUI();
       return;
@@ -1014,7 +1079,7 @@ async function spin({demo=false} = {}){
   els.spinBtn.disabled = true;
   els.demoBtn.disabled = true;
 
-  if (!demo){
+  if (!demo && !adminFree){
     const price = Number(activeCase.price) || 0;
     stars = stars - price;
     saveBalance();
@@ -1050,33 +1115,39 @@ async function spin({demo=false} = {}){
   els.track.style.transform = `translateX(${targetTranslate}px)`;
 
   els.resultText.textContent = `${picked.gift.emoji} ${picked.gift.name}`;
-  els.resultMeta.textContent = demo ? "демо" : "спин";
+  els.resultMeta.textContent = demo ? "демо" : (adminFree ? "админ" : "спин");
 
-  if (!demo){
+  if (!demo && !adminFree){
     setLastSpinMs(nowMs());
     updateCooldownUI();
+  } else {
+    // админ / демо — просто обновим badge
+    updateCooldownUI();
+  }
 
-    /* ✅ если выпали звёзды — сразу начисляем на баланс (без модалки) */
-    if (picked.gift && picked.gift.isStars){
-      const gain = Math.max(1, Number(picked.gift.cost || 0));
-      stars += gain;
-      saveBalance();
-      updateStarsUI();
-      alert(`Выигрыш: +${gain} ⭐`);
-    } else {
-      openModal(picked.gift, activeCase);
-    }
+  // ✅ если выпали звёзды — сразу начисляем
+  if (!demo && picked.gift && picked.gift.isStars){
+    const gain = Math.max(1, Number(picked.gift.cost || 0));
+    stars += gain;
+    saveBalance();
+    updateStarsUI();
+
+    addEarned(gain);
+
+    alert(`Выигрыш: +${gain} ⭐`);
+  } else if (!demo) {
+    openModal(picked.gift, activeCase);
   }
 
   isSpinning = false;
   els.demoBtn.disabled = false;
 }
 
-/* кнопки */
+/* buttons */
 els.spinBtn.addEventListener("click", ()=> spin({demo:false}));
 els.demoBtn.addEventListener("click", ()=> spin({demo:true}));
 
-/* ✅ античит: пополнение только админ */
+// admin + button
 els.addStarsBtn.addEventListener("click", ()=>{
   if (!IS_ADMIN){
     alert("Пополнение недоступно.");
@@ -1091,12 +1162,12 @@ els.addStarsBtn.addEventListener("click", ()=>{
   updateStarsUI();
 });
 
-/* Модалка: оставить/продать */
+/* modal actions */
 els.keepBtn.addEventListener("click", ()=>{
   if (!pendingGift) return;
   addToInventory(pendingGift.gift, pendingGift.caseObj);
   closeModal();
-  alert("Подарок сохранён в профиле ✅");
+  alert("Подарок сохранён ✅");
 });
 els.sellBtn.addEventListener("click", ()=>{
   if (!pendingGift) return;
@@ -1104,15 +1175,19 @@ els.sellBtn.addEventListener("click", ()=>{
   stars += gain;
   saveBalance();
   updateStarsUI();
+
+  addEarned(gain);
+
   closeModal();
   alert(`Продано: +${gain} ⭐`);
 });
 
-/* Экспорт профиля */
+/* export */
 els.exportBtn.addEventListener("click", ()=>{
   const data = {
     user: USER,
     stars,
+    earned,
     inventory,
     lastSpinMs: getLastSpinMs(),
     exportedAt: new Date().toISOString()
@@ -1121,20 +1196,21 @@ els.exportBtn.addEventListener("click", ()=>{
   prompt("Скопируй экспорт JSON:", txt);
 });
 
-/* Сброс локальных данных */
+/* wipe */
 els.wipeBtn.addEventListener("click", ()=>{
-  const ok = confirm("Точно сбросить профиль? (удалит звёзды/инвентарь/кд локально)");
+  const ok = confirm("Сбросить профиль? (локально)");
   if (!ok) return;
   localStorage.removeItem(kBalance());
   localStorage.removeItem(kInv());
   localStorage.removeItem(kLastSpin());
+  localStorage.removeItem(kEarned());
   loadAll();
   renderInventory();
   updateCooldownUI();
   alert("Сброшено.");
 });
 
-/* ✅ админ кнопки в профиле */
+/* admin panel */
 if (els.adminAdd100){
   els.adminAdd100.addEventListener("click", ()=>{
     if (!IS_ADMIN) return;
