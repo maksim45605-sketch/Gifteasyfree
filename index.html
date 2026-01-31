@@ -3,52 +3,142 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1" />
-  <title>Easy Gift — Mini App</title>
+  <title>Easy Gift</title>
 
   <!-- Telegram Mini App SDK -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
   <style>
     :root{
-      --bg:#0f1720;
+      --bg0:#070c12;
+      --bg1:#0b121a;
+      --bg2:#0f1720;
+
       --text:#e7eef7;
       --muted:#93a6bd;
       --accent:#33a6ff;
+      --accent2:#7c4dff;
       --good:#17c964;
       --warn:#f5a524;
       --danger:#ff4d4d;
-      --radius:16px;
+
+      --radius:18px;
 
       --itemW: 150px;
       --itemH: 120px;
+
+      --card: rgba(255,255,255,0.035);
+      --border: rgba(255,255,255,0.07);
+      --border2: rgba(255,255,255,0.10);
     }
+
     *{box-sizing:border-box}
+    html,body{height:100%}
     body{
       margin:0;
-      background:linear-gradient(180deg,#0b121a, #0f1720 40%, #0b121a);
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
       color:var(--text);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background:
+        radial-gradient(1200px 700px at 20% -10%, rgba(51,166,255,.18), transparent 60%),
+        radial-gradient(900px 600px at 90% 0%, rgba(124,77,255,.14), transparent 55%),
+        radial-gradient(900px 700px at 80% 110%, rgba(51,166,255,.10), transparent 55%),
+        linear-gradient(180deg, var(--bg0), var(--bg2) 45%, var(--bg1));
       padding:14px;
       padding-bottom:86px; /* место под нижнее меню */
+      overflow-x:hidden;
     }
+
+    /* ====== МНОГО ДЕКОРА ====== */
+    .bgDecor{
+      position:fixed; inset:0;
+      pointer-events:none;
+      z-index:-1;
+      overflow:hidden;
+    }
+    .blob{
+      position:absolute;
+      width:520px; height:520px;
+      border-radius:50%;
+      filter: blur(35px);
+      opacity:.22;
+      animation: floaty 12s ease-in-out infinite;
+      transform: translate3d(0,0,0);
+    }
+    .blob.b1{ left:-180px; top:-220px; background: radial-gradient(circle at 30% 30%, rgba(51,166,255,.9), rgba(51,166,255,0) 60%); }
+    .blob.b2{ right:-220px; top:-180px; background: radial-gradient(circle at 35% 35%, rgba(124,77,255,.9), rgba(124,77,255,0) 60%); animation-duration: 14s; }
+    .blob.b3{ left:10%; bottom:-300px; width:640px;height:640px; background: radial-gradient(circle at 30% 30%, rgba(51,166,255,.7), rgba(51,166,255,0) 62%); animation-duration: 16s; opacity:.16; }
+    @keyframes floaty{
+      0%,100%{ transform: translate(0,0) scale(1); }
+      50%{ transform: translate(18px, -14px) scale(1.03); }
+    }
+
+    .starfield{
+      position:absolute; inset:-40px;
+      background-image:
+        radial-gradient(1px 1px at 10% 20%, rgba(255,255,255,.20), transparent 60%),
+        radial-gradient(1px 1px at 30% 70%, rgba(255,255,255,.16), transparent 60%),
+        radial-gradient(1px 1px at 75% 35%, rgba(255,255,255,.18), transparent 60%),
+        radial-gradient(1px 1px at 60% 85%, rgba(255,255,255,.14), transparent 60%),
+        radial-gradient(1px 1px at 90% 65%, rgba(255,255,255,.15), transparent 60%),
+        radial-gradient(1px 1px at 45% 10%, rgba(255,255,255,.14), transparent 60%),
+        radial-gradient(1px 1px at 15% 90%, rgba(255,255,255,.12), transparent 60%);
+      opacity:.65;
+      animation: twinkle 6s ease-in-out infinite;
+    }
+    @keyframes twinkle{
+      0%,100%{ opacity:.55; }
+      50%{ opacity:.85; }
+    }
+
+    .sheen{
+      position:absolute; inset:-120px;
+      background: conic-gradient(from 180deg at 50% 50%, transparent 0 40%, rgba(255,255,255,.07) 48%, transparent 56% 100%);
+      transform: rotate(0deg);
+      animation: spinSheen 18s linear infinite;
+      opacity:.35;
+    }
+    @keyframes spinSheen{
+      to{ transform: rotate(360deg); }
+    }
+
+    /* ====== layout ====== */
     .app{max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:12px;}
 
     /* ===== header like photos ===== */
     .topbar{
+      position:relative;
       background:rgba(255,255,255,0.03);
-      border:1px solid rgba(255,255,255,0.06);
+      border:1px solid rgba(255,255,255,0.07);
       border-radius:18px;
       padding:12px 12px;
       display:flex;
       align-items:center;
       justify-content:space-between;
       gap:10px;
+      overflow:hidden;
     }
+    .topbar:before{
+      content:"";
+      position:absolute; inset:0;
+      background: linear-gradient(135deg, rgba(51,166,255,.12), transparent 35%, rgba(124,77,255,.10));
+      opacity:.65;
+      pointer-events:none;
+    }
+    .topbar:after{
+      content:"";
+      position:absolute; inset:-2px;
+      background: radial-gradient(600px 120px at 20% 0%, rgba(255,255,255,.12), transparent 60%);
+      pointer-events:none;
+      opacity:.35;
+    }
+
     .topLeft{
       display:flex;
       align-items:center;
       gap:10px;
       min-width:0;
+      position:relative;
+      z-index:1;
     }
     .avatar{
       width:42px;height:42px;
@@ -62,14 +152,15 @@
       color:var(--muted);
       font-weight:900;
       user-select:none;
+      box-shadow: 0 14px 28px rgba(0,0,0,.22);
     }
     .avatar img{width:100%;height:100%;object-fit:cover;display:block;}
 
-    .title{display:flex;flex-direction:column;gap:2px;line-height:1.1;min-width:0;}
-    .title b{font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .title{display:flex;flex-direction:column;gap:3px;line-height:1.1;min-width:0; position:relative; z-index:1;}
+    .title b{font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; letter-spacing:.2px;}
     .title small{color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 
-    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end;}
+    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end; position:relative; z-index:1;}
     .balanceWrap{gap:8px;}
     .pill{
       padding:8px 10px;
@@ -81,6 +172,7 @@
       gap:8px;
       white-space:nowrap;
       font-weight:900;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.08);
     }
     .starImg{
       width:18px;height:18px;object-fit:contain;display:block;
@@ -96,9 +188,18 @@
       font-size:22px;
       cursor:pointer;
       display:grid;place-items:center;
-      box-shadow:0 10px 20px rgba(0,0,0,.25);
+      box-shadow:0 14px 30px rgba(0,0,0,.28);
       user-select:none;
       touch-action:manipulation;
+      position:relative;
+      overflow:hidden;
+    }
+    .plusBtn:before{
+      content:"";
+      position:absolute; inset:-40px;
+      background: radial-gradient(60px 60px at 25% 20%, rgba(255,255,255,.6), transparent 60%);
+      opacity:.35;
+      pointer-events:none;
     }
     .plusBtn:disabled{opacity:.45;cursor:not-allowed;}
 
@@ -112,17 +213,20 @@
       cursor:pointer;
       user-select:none;
       touch-action:manipulation;
+      box-shadow:0 12px 24px rgba(0,0,0,.24);
     }
     .btn:disabled{opacity:.55;cursor:not-allowed;}
     .btn.secondary{
       background:rgba(255,255,255,0.08);
       color:var(--text);
       border:1px solid rgba(255,255,255,0.12);
+      box-shadow:none;
     }
     .btn.danger{
       background:rgba(255,77,77,0.18);
       color:var(--text);
       border:1px solid rgba(255,77,77,0.35);
+      box-shadow:none;
     }
 
     .tabs{
@@ -132,6 +236,7 @@
       border-radius:999px;
       padding:6px;
       width:fit-content;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
     }
     .tab{
       padding:9px 12px;
@@ -148,10 +253,21 @@
     }
 
     .card{
+      position:relative;
       background:rgba(255,255,255,0.03);
       border:1px solid rgba(255,255,255,0.06);
       border-radius:18px;
       padding:12px;
+      overflow:hidden;
+    }
+    .card:before{
+      content:"";
+      position:absolute; inset:0;
+      background:
+        radial-gradient(420px 90px at 20% 0%, rgba(255,255,255,.10), transparent 60%),
+        radial-gradient(520px 120px at 90% 10%, rgba(51,166,255,.10), transparent 62%);
+      opacity:.55;
+      pointer-events:none;
     }
     .card h3{
       margin:0 0 10px 0;
@@ -160,10 +276,13 @@
       font-weight:900;
       letter-spacing:.2px;
       text-transform:uppercase;
+      position:relative;
+      z-index:1;
     }
 
     /* Кейсы */
     .casesRow{
+      position:relative; z-index:1;
       display:flex;
       gap:10px;
       overflow:auto;
@@ -183,6 +302,15 @@
       align-items:center;
       cursor:pointer;
       user-select:none;
+      position:relative;
+      overflow:hidden;
+    }
+    .caseCard:before{
+      content:"";
+      position:absolute; inset:-2px;
+      background: linear-gradient(120deg, rgba(255,255,255,.08), transparent 45%, rgba(51,166,255,.10));
+      opacity:.35;
+      pointer-events:none;
     }
     .caseCard.active{
       border-color:rgba(51,166,255,0.7);
@@ -194,10 +322,11 @@
       background:rgba(255,255,255,0.06);
       border:1px solid rgba(255,255,255,0.10);
       display:grid;place-items:center;
-      font-size:28px;
       flex:0 0 auto;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.08);
     }
-    .caseInfo{min-width:0;display:flex;flex-direction:column;gap:4px;}
+    .caseArt svg{width:44px;height:44px;display:block;filter: drop-shadow(0 8px 12px rgba(0,0,0,.28));}
+    .caseInfo{min-width:0;display:flex;flex-direction:column;gap:6px; position:relative; z-index:1;}
     .caseName{font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
     .priceLine{display:flex;align-items:center;gap:6px;font-weight:900;}
     .priceLine small{color:var(--muted);font-weight:700}
@@ -211,6 +340,7 @@
       border-radius:18px;
       background:linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
       border:1px solid rgba(255,255,255,0.08);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
     }
     .fadeLeft, .fadeRight{
       position:absolute;top:0;bottom:0;width:44px;z-index:3;pointer-events:none;
@@ -231,7 +361,7 @@
       border-right:12px solid transparent;
       border-top:16px solid rgba(51,166,255,.95);
       z-index:4;
-      filter:drop-shadow(0 6px 10px rgba(0,0,0,.35));
+      filter:drop-shadow(0 8px 12px rgba(0,0,0,.35));
     }
     .track{
       position:absolute;
@@ -252,6 +382,7 @@
       gap:8px;
       border-right:1px solid rgba(255,255,255,0.06);
       background:rgba(0,0,0,0.03);
+      position:relative;
     }
     .item:nth-child(2n){ background:rgba(255,255,255,0.02); }
     .itemEmoji{
@@ -260,7 +391,12 @@
       background:rgba(255,255,255,0.06);
       border:1px solid rgba(255,255,255,0.10);
       display:grid;place-items:center;
-      font-size:30px;
+      flex:0 0 auto;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
+    }
+    .itemEmoji svg{
+      width:38px;height:38px;display:block;
+      filter: drop-shadow(0 10px 12px rgba(0,0,0,.30));
     }
     .itemName{
       font-weight:900;
@@ -273,10 +409,14 @@
       -webkit-box-orient:vertical;
       overflow:hidden;
       min-height:30px;
+      position:relative;
+      z-index:1;
     }
     .itemCost{
       display:flex;align-items:center;gap:6px;
       font-weight:900;
+      position:relative;
+      z-index:1;
     }
     .badge{
       font-size:12px;
@@ -285,9 +425,11 @@
       border-radius:999px;
       border:1px solid rgba(255,255,255,0.08);
       background:rgba(255,255,255,0.04);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
     }
     .controls{
       display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:space-between;
+      position:relative; z-index:1;
     }
     .hint{color:var(--muted);font-size:12px;line-height:1.3;}
     .result{
@@ -300,16 +442,19 @@
       align-items:center;
       justify-content:space-between;
       gap:10px;
+      position:relative;
+      z-index:1;
     }
     .result b{font-size:14px}
 
     /* Профиль */
     .profileHeader{
       display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;
+      position:relative; z-index:1;
     }
     .userBox{display:flex;flex-direction:column;gap:2px;}
     .userBox b{font-size:15px}
-    .invList{display:flex;flex-direction:column;gap:8px;margin-top:10px;}
+    .invList{display:flex;flex-direction:column;gap:8px;margin-top:10px; position:relative; z-index:1;}
     .invItem{
       border-radius:14px;
       border:1px solid rgba(255,255,255,0.10);
@@ -319,22 +464,31 @@
       justify-content:space-between;
       align-items:center;
       gap:10px;
+      overflow:hidden;
+      position:relative;
     }
-    .invLeft{display:flex;gap:10px;align-items:center;min-width:0;}
+    .invItem:before{
+      content:"";
+      position:absolute; inset:0;
+      background: radial-gradient(420px 120px at 10% 0%, rgba(255,255,255,.08), transparent 60%);
+      opacity:.35;
+      pointer-events:none;
+    }
+    .invLeft{display:flex;gap:10px;align-items:center;min-width:0; position:relative; z-index:1;}
     .miniEmoji{
       width:38px;height:38px;border-radius:14px;
       background:rgba(255,255,255,0.06);
       border:1px solid rgba(255,255,255,0.10);
       display:grid;place-items:center;
-      font-size:20px;
       flex:0 0 auto;
     }
+    .miniEmoji svg{width:24px;height:24px;display:block;filter: drop-shadow(0 8px 10px rgba(0,0,0,.28));}
     .invName{
       font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
       max-width:55vw;
     }
     .invMeta{color:var(--muted);font-size:12px;margin-top:2px;}
-    .invRight{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end;}
+    .invRight{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end; position:relative; z-index:1;}
     .smallPrice{
       display:flex;align-items:center;gap:6px;font-weight:900;
       white-space:nowrap;
@@ -346,6 +500,7 @@
       color:var(--muted);
       text-align:center;
       margin-top:10px;
+      position:relative; z-index:1;
     }
 
     /* Модалка keep/sell */
@@ -363,21 +518,31 @@
       border-radius:18px;
       background:rgba(15,23,32,0.96);
       border:1px solid rgba(255,255,255,0.10);
-      box-shadow:0 20px 60px rgba(0,0,0,0.4);
+      box-shadow:0 20px 60px rgba(0,0,0,0.45);
       padding:14px;
+      overflow:hidden;
+      position:relative;
     }
-    .modalTop{display:flex;justify-content:space-between;align-items:center;gap:10px;}
+    .modal:before{
+      content:"";
+      position:absolute; inset:-2px;
+      background: linear-gradient(135deg, rgba(51,166,255,.14), transparent 45%, rgba(124,77,255,.12));
+      opacity:.55;
+      pointer-events:none;
+    }
+    .modalTop{display:flex;justify-content:space-between;align-items:center;gap:10px; position:relative; z-index:1;}
     .modalTop b{font-size:16px}
     .closeX{cursor:pointer;color:var(--muted);font-weight:900;padding:6px 10px;border-radius:12px;}
     .closeX:hover{background:rgba(255,255,255,0.06);color:var(--text);}
-    .modalBody{margin-top:10px;display:flex;gap:12px;align-items:center;}
+    .modalBody{margin-top:10px;display:flex;gap:12px;align-items:center; position:relative; z-index:1;}
     .bigEmoji{
       width:74px;height:74px;border-radius:22px;
       background:rgba(255,255,255,0.06);
       border:1px solid rgba(255,255,255,0.10);
-      display:grid;place-items:center;font-size:40px;flex:0 0 auto;
+      display:grid;place-items:center;flex:0 0 auto;
     }
-    .modalActions{margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;}
+    .bigEmoji svg{width:48px;height:48px;display:block;filter: drop-shadow(0 12px 14px rgba(0,0,0,.32));}
+    .modalActions{margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end; position:relative; z-index:1;}
 
     /* bottom nav like photos */
     .bottomNav{
@@ -409,16 +574,33 @@
     .navItem:disabled{opacity:.35;cursor:not-allowed;}
     .navItem .navIco{font-size:18px;line-height:1;}
     .navItem.active{color:rgba(51,166,255,0.95);}
+
+    /* mobile polish */
+    @media (max-width:420px){
+      :root{ --itemW: 135px; --itemH: 118px; }
+      .caseCard{ flex-basis: 220px; }
+    }
   </style>
 </head>
 
 <body>
+  <!-- много декора -->
+  <div class="bgDecor">
+    <div class="blob b1"></div>
+    <div class="blob b2"></div>
+    <div class="blob b3"></div>
+    <div class="starfield"></div>
+    <div class="sheen"></div>
+  </div>
+
   <div class="app">
     <div class="topbar">
       <div class="topLeft">
         <div class="avatar" id="avatar"><span id="avatarFallback">EG</span></div>
         <div class="title">
-          <b id="headerTitle">Easy Gift — Mini App</b>
+          <!-- ✅ тут будет ник пользователя -->
+          <b id="headerTitle">—</b>
+          <!-- ✅ “⭐ заработано” -->
           <small id="subTitle">Загрузка…</small>
         </div>
       </div>
@@ -428,6 +610,7 @@
           <img class="starImg" src="img/Star.png" alt="⭐" onerror="this.style.display='none'">
           <span id="stars">0</span>
         </div>
+        <!-- + доступно только админу -->
         <button class="plusBtn" id="addStarsBtn" title="Пополнить">+</button>
       </div>
     </div>
@@ -445,7 +628,7 @@
       </div>
 
       <div class="card rouletteWrap">
-        <h3>Рулетка (горизонтально)</h3>
+        <h3>Рулетка</h3>
 
         <div class="window" id="window">
           <div class="fadeLeft"></div>
@@ -461,7 +644,7 @@
             <span class="badge" id="cooldownBadge">Доступно</span>
           </div>
           <div style="display:flex;gap:8px;flex-wrap:wrap;">
-            <button class="btn secondary" id="demoBtn" title="Демо не тратит звёзды, но НЕ ставит кд">Демо</button>
+            <button class="btn secondary" id="demoBtn" title="Демо не тратит звёзды, не ставит кд">Демо</button>
             <button class="btn" id="spinBtn">Испытай удачу</button>
           </div>
         </div>
@@ -484,11 +667,12 @@
         <div class="profileHeader">
           <div class="userBox">
             <b id="userName">—</b>
+            <!-- ✅ ID убран полностью -->
           </div>
 
           <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;">
             <button class="btn secondary" id="exportBtn">Экспорт</button>
-            <button class="btn danger" id="wipeBtn">Сбросить профиль (локально)</button>
+            <button class="btn danger" id="wipeBtn">Сбросить профиль</button>
           </div>
         </div>
 
@@ -498,14 +682,13 @@
 
         <div id="invWrap"></div>
 
-        <div id="adminBlock" style="display:none;margin-top:12px;">
+        <div id="adminBlock" style="display:none;margin-top:12px; position:relative; z-index:1;">
           <div class="hint" style="margin-bottom:8px;">Админ: @RealZanT</div>
           <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;">
             <button class="btn secondary" id="adminAdd100">+100 ⭐</button>
             <button class="btn secondary" id="adminResetCd">Сбросить КД</button>
           </div>
         </div>
-
       </div>
     </div>
   </div>
@@ -519,7 +702,7 @@
       </div>
 
       <div class="modalBody">
-        <div class="bigEmoji" id="modalEmoji">🎁</div>
+        <div class="bigEmoji" id="modalEmoji"></div>
         <div style="min-width:0;">
           <div style="font-weight:900;font-size:14px;" id="modalName">—</div>
           <div class="hint" id="modalInfo">—</div>
@@ -569,55 +752,154 @@
    SETTINGS
 ========================== */
 const COOLDOWN_MS = 24 * 60 * 60 * 1000; // 24ч
-const SELL_RATE = 0.20; // 20%
+const SELL_RATE = 0.20;                   // 20%
 const ADMIN_USERNAME = "@RealZanT";
 
-/* CASES */
-const CASES = [
-  {
-    id: "case_1",
-    icon: "🎁",
-    name: "Кейс за 1⭐",
-    price: 1,
-    gifts: [
-      /* ✅ 1⭐ -> 2⭐ */
-      {id:"g_star2", emoji:"⭐", name:"2 звезды", cost:2, weight:70, isStars:true},
-      {id:"g_heart", emoji:"💝", name:"Сердце",  cost:15,  weight:30},
-      {id:"g_lolli", emoji:"🍭", name:"Леденец", cost:560, weight:16},
-      {id:"g_flwr",  emoji:"🌸", name:"Цветок",  cost:1280,weight:10},
-      {id:"g_cake",  emoji:"🍰", name:"Торт",    cost:780, weight:12},
-      {id:"g_potion",emoji:"🧪", name:"Зелье",   cost:2300,weight:4},
-    ]
-  },
-  {
-    id: "case_5",
-    icon: "🧸",
-    name: "Кейс за 5⭐",
-    price: 5,
-    gifts: [
-      {id:"g_cake2",  emoji:"🍰", name:"Торт с вишней", cost:780,  weight:18},
-      {id:"g_flwr2",  emoji:"🌸", name:"Цветок",       cost:1280, weight:16},
-      {id:"g_shoe",   emoji:"👠", name:"Туфли",        cost:1750, weight:12},
-      {id:"g_potion2",emoji:"🧪", name:"Зелье",        cost:2300, weight:10},
-      {id:"g_rose",   emoji:"🌹", name:"Роза в колбе", cost:3500, weight:6},
-      {id:"g_ring",   emoji:"💍", name:"Кольцо",       cost:3900, weight:4},
-    ]
-  },
-  {
-    id: "case_40",
-    icon: "💝",
-    name: "Кейс за 40⭐",
-    price: 40,
-    gifts: [
-      {id:"g_bear",  emoji:"🧸", name:"Мишка",        cost:5500, weight:6},
-      {id:"g_ring2", emoji:"💍", name:"Кольцо",       cost:3900, weight:10},
-      {id:"g_rose2", emoji:"🌹", name:"Роза в колбе", cost:3500, weight:10},
-      {id:"g_shoe2", emoji:"👠", name:"Туфли",        cost:1750, weight:18},
-      {id:"g_flwr3", emoji:"🌸", name:"Цветок",       cost:1280, weight:22},
-      {id:"g_lolli2",emoji:"🍭", name:"Леденец",      cost:560,  weight:26},
-    ]
-  }
-];
+/* ==========================
+   SVG ICONS (вместо emoji)
+========================== */
+function svgWrap(inner, viewBox="0 0 64 64"){
+  return `<svg viewBox="${viewBox}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">${inner}</svg>`;
+}
+const ICONS = {
+  caseGift: svgWrap(`
+    <defs>
+      <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#33a6ff"/><stop offset="1" stop-color="#7c4dff"/>
+      </linearGradient>
+    </defs>
+    <rect x="10" y="26" width="44" height="26" rx="8" fill="rgba(255,255,255,.10)" stroke="rgba(255,255,255,.20)"/>
+    <rect x="10" y="20" width="44" height="12" rx="6" fill="rgba(255,255,255,.08)" stroke="rgba(255,255,255,.18)"/>
+    <path d="M32 20v32" stroke="url(#g1)" stroke-width="6" stroke-linecap="round"/>
+    <path d="M10 32h44" stroke="url(#g1)" stroke-width="6" stroke-linecap="round"/>
+    <path d="M32 20c-7 0-10-4-10-7 0-3 3-5 6-4 3 1 4 4 4 7z" fill="url(#g1)"/>
+    <path d="M32 20c7 0 10-4 10-7 0-3-3-5-6-4-3 1-4 4-4 7z" fill="url(#g1)"/>
+  `),
+  caseBear: svgWrap(`
+    <defs><linearGradient id="b1" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#33a6ff"/><stop offset="1" stop-color="#1ee1a6"/>
+    </linearGradient></defs>
+    <circle cx="20" cy="18" r="8" fill="rgba(255,255,255,.10)" stroke="rgba(255,255,255,.20)"/>
+    <circle cx="44" cy="18" r="8" fill="rgba(255,255,255,.10)" stroke="rgba(255,255,255,.20)"/>
+    <circle cx="32" cy="34" r="20" fill="rgba(255,255,255,.08)" stroke="rgba(255,255,255,.18)"/>
+    <circle cx="25" cy="30" r="3" fill="#e7eef7"/><circle cx="39" cy="30" r="3" fill="#e7eef7"/>
+    <path d="M28 40c2 2 6 2 8 0" stroke="url(#b1)" stroke-width="4" stroke-linecap="round"/>
+    <path d="M30 35c0 4 4 4 4 0" stroke="rgba(255,255,255,.5)" stroke-width="4" stroke-linecap="round"/>
+  `),
+  caseHeart: svgWrap(`
+    <defs><linearGradient id="h1" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ff4d9d"/><stop offset="1" stop-color="#7c4dff"/>
+    </linearGradient></defs>
+    <path d="M32 52s-18-10-22-22c-3-9 3-18 12-18 5 0 8 2 10 5 2-3 5-5 10-5 9 0 15 9 12 18-4 12-22 22-22 22z"
+      fill="rgba(255,255,255,.08)" stroke="rgba(255,255,255,.18)" stroke-width="2"/>
+    <path d="M32 50s-16-9-19-19c-2-7 2-14 10-14 4 0 7 2 9 5 2-3 5-5 9-5 8 0 12 7 10 14-3 10-19 19-19 19z"
+      fill="url(#h1)" opacity=".9"/>
+  `),
+
+  star2: svgWrap(`
+    <defs><linearGradient id="s1" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffd86b"/><stop offset="1" stop-color="#ff9f1c"/>
+    </linearGradient></defs>
+    <path d="M32 6l7 16 17 2-12 11 4 17-16-9-16 9 4-17-12-11 17-2 7-16z" fill="url(#s1)" stroke="rgba(255,255,255,.25)" stroke-width="2"/>
+    <text x="32" y="38" text-anchor="middle" font-size="18" font-weight="900" fill="rgba(8,12,18,.8)">2</text>
+  `),
+
+  heart: svgWrap(`
+    <defs><linearGradient id="hg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ff4d9d"/><stop offset="1" stop-color="#ff4d4d"/>
+    </linearGradient></defs>
+    <path d="M32 54s-18-10-22-22c-3-9 3-18 12-18 5 0 8 2 10 5 2-3 5-5 10-5 9 0 15 9 12 18-4 12-22 22-22 22z"
+      fill="url(#hg)" opacity=".95" stroke="rgba(255,255,255,.22)" stroke-width="2"/>
+  `),
+
+  lolli: svgWrap(`
+    <defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#7c4dff"/><stop offset="1" stop-color="#33a6ff"/>
+    </linearGradient></defs>
+    <circle cx="28" cy="28" r="16" fill="rgba(255,255,255,.08)" stroke="rgba(255,255,255,.18)" stroke-width="2"/>
+    <path d="M18 22c6-8 18-8 24 0" stroke="url(#lg)" stroke-width="4" stroke-linecap="round"/>
+    <path d="M18 34c6 8 18 8 24 0" stroke="url(#lg)" stroke-width="4" stroke-linecap="round"/>
+    <path d="M40 40l14 14" stroke="rgba(255,255,255,.35)" stroke-width="4" stroke-linecap="round"/>
+  `),
+
+  flower: svgWrap(`
+    <defs><linearGradient id="fg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1ee1a6"/><stop offset="1" stop-color="#33a6ff"/>
+    </linearGradient></defs>
+    <circle cx="32" cy="32" r="6" fill="rgba(255,255,255,.85)"/>
+    <g fill="url(#fg)" opacity=".95" stroke="rgba(255,255,255,.18)" stroke-width="2">
+      <ellipse cx="32" cy="16" rx="10" ry="12"/>
+      <ellipse cx="32" cy="48" rx="10" ry="12"/>
+      <ellipse cx="16" cy="32" rx="12" ry="10"/>
+      <ellipse cx="48" cy="32" rx="12" ry="10"/>
+      <ellipse cx="21" cy="21" rx="10" ry="12" transform="rotate(-45 21 21)"/>
+      <ellipse cx="43" cy="21" rx="10" ry="12" transform="rotate(45 43 21)"/>
+      <ellipse cx="21" cy="43" rx="10" ry="12" transform="rotate(45 21 43)"/>
+      <ellipse cx="43" cy="43" rx="10" ry="12" transform="rotate(-45 43 43)"/>
+    </g>
+  `),
+
+  cake: svgWrap(`
+    <defs><linearGradient id="cg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ff9f1c"/><stop offset="1" stop-color="#ff4d9d"/>
+    </linearGradient></defs>
+    <rect x="14" y="30" width="36" height="22" rx="8" fill="rgba(255,255,255,.08)" stroke="rgba(255,255,255,.18)" stroke-width="2"/>
+    <path d="M14 34c6 6 12-6 18 0s12-6 18 0v6H14z" fill="url(#cg)" opacity=".9"/>
+    <path d="M22 24h20" stroke="rgba(255,255,255,.35)" stroke-width="6" stroke-linecap="round"/>
+    <path d="M32 12v10" stroke="rgba(255,255,255,.35)" stroke-width="4" stroke-linecap="round"/>
+    <circle cx="32" cy="12" r="3" fill="url(#cg)"/>
+  `),
+
+  potion: svgWrap(`
+    <defs><linearGradient id="pg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#33a6ff"/><stop offset="1" stop-color="#1ee1a6"/>
+    </linearGradient></defs>
+    <path d="M26 10h12" stroke="rgba(255,255,255,.35)" stroke-width="6" stroke-linecap="round"/>
+    <path d="M28 10v10l-8 12c-3 5 1 12 8 12h8c7 0 11-7 8-12l-8-12V10"
+      fill="rgba(255,255,255,.08)" stroke="rgba(255,255,255,.18)" stroke-width="2"/>
+    <path d="M22 40c2 4 6 6 10 6s8-2 10-6c-6-4-24-4-20 0z" fill="url(#pg)" opacity=".9"/>
+  `),
+
+  shoe: svgWrap(`
+    <defs><linearGradient id="sg2" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#7c4dff"/><stop offset="1" stop-color="#ff4d9d"/>
+    </linearGradient></defs>
+    <path d="M14 40c8 0 12-8 14-14 6 4 10 10 22 10 4 0 6 2 6 6v6H14z"
+      fill="rgba(255,255,255,.08)" stroke="rgba(255,255,255,.18)" stroke-width="2"/>
+    <path d="M28 26c3 5 8 10 22 10" stroke="url(#sg2)" stroke-width="4" stroke-linecap="round"/>
+  `),
+
+  rose: svgWrap(`
+    <defs><linearGradient id="rg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ff4d4d"/><stop offset="1" stop-color="#ff4d9d"/>
+    </linearGradient></defs>
+    <path d="M32 12c8 0 10 8 6 12 4 1 6 8 0 12-3 2-8 2-12 0-6-4-4-11 0-12-4-4-2-12 6-12z"
+      fill="url(#rg)" opacity=".95" stroke="rgba(255,255,255,.20)" stroke-width="2"/>
+    <path d="M32 36v18" stroke="rgba(30,225,166,.8)" stroke-width="4" stroke-linecap="round"/>
+    <path d="M32 44c-6 0-10-4-12-7" stroke="rgba(30,225,166,.6)" stroke-width="4" stroke-linecap="round"/>
+  `),
+
+  ring: svgWrap(`
+    <defs><linearGradient id="ringg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#33a6ff"/><stop offset="1" stop-color="#ffd86b"/>
+    </linearGradient></defs>
+    <circle cx="32" cy="36" r="14" fill="rgba(255,255,255,.06)" stroke="url(#ringg)" stroke-width="5"/>
+    <path d="M28 18l4-8 4 8z" fill="url(#ringg)" opacity=".95"/>
+    <circle cx="32" cy="18" r="4" fill="rgba(255,255,255,.7)"/>
+  `),
+
+  bear: svgWrap(`
+    <defs><linearGradient id="bg2" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#33a6ff"/><stop offset="1" stop-color="#1ee1a6"/>
+    </linearGradient></defs>
+    <circle cx="20" cy="18" r="8" fill="rgba(255,255,255,.10)" stroke="rgba(255,255,255,.20)"/>
+    <circle cx="44" cy="18" r="8" fill="rgba(255,255,255,.10)" stroke="rgba(255,255,255,.20)"/>
+    <circle cx="32" cy="34" r="20" fill="rgba(255,255,255,.08)" stroke="rgba(255,255,255,.18)"/>
+    <circle cx="25" cy="30" r="3" fill="#e7eef7"/><circle cx="39" cy="30" r="3" fill="#e7eef7"/>
+    <path d="M28 40c2 2 6 2 8 0" stroke="url(#bg2)" stroke-width="4" stroke-linecap="round"/>
+    <path d="M30 35c0 4 4 4 4 0" stroke="rgba(255,255,255,.5)" stroke-width="4" stroke-linecap="round"/>
+  `),
+};
 
 /* ==========================
    HELPERS / USER
@@ -646,7 +928,6 @@ function getTelegramUser(){
   if (!tg) return null;
   const u = tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user : null;
   if (!u || !u.id) return null;
-
   try { tg.expand(); } catch {}
   return {
     id: String(u.id),
@@ -673,6 +954,60 @@ function kBalance(){ return `eg_balance_${USER.id}`; }
 function kInv(){ return `eg_inventory_${USER.id}`; }
 function kLastSpin(){ return `eg_lastSpin_${USER.id}`; }
 function kEarned(){ return `eg_earned_${USER.id}`; }
+
+function getDisplayName(){
+  const name = [USER.first_name, USER.last_name].filter(Boolean).join(" ").trim() || "Пользователь";
+  return USER.username || name;
+}
+
+/* ==========================
+   DATA (SVG вместо emoji)
+   ✅ В дешёвом кейсе вместо 1⭐ -> 2⭐
+========================== */
+const CASES = [
+  {
+    id: "case_1",
+    iconKey: "caseGift",
+    name: "Кейс за 1⭐",
+    price: 1,
+    gifts: [
+      {id:"g_star2", iconKey:"star2", name:"2 звезды", cost:2, weight:70, isStars:true},
+      {id:"g_heart", iconKey:"heart", name:"Сердце",  cost:15,  weight:30},
+      {id:"g_lolli", iconKey:"lolli", name:"Леденец", cost:560, weight:16},
+      {id:"g_flwr",  iconKey:"flower",name:"Цветок",  cost:1280,weight:10},
+      {id:"g_cake",  iconKey:"cake",  name:"Торт",    cost:780, weight:12},
+      {id:"g_potion",iconKey:"potion",name:"Зелье",   cost:2300,weight:4},
+    ]
+  },
+  {
+    id: "case_5",
+    iconKey: "caseBear",
+    name: "Кейс за 5⭐",
+    price: 5,
+    gifts: [
+      {id:"g_cake2",  iconKey:"cake",  name:"Торт с вишней", cost:780,  weight:18},
+      {id:"g_flwr2",  iconKey:"flower",name:"Цветок",       cost:1280, weight:16},
+      {id:"g_shoe",   iconKey:"shoe",  name:"Туфли",        cost:1750, weight:12},
+      {id:"g_potion2",iconKey:"potion",name:"Зелье",        cost:2300, weight:10},
+      {id:"g_rose",   iconKey:"rose",  name:"Роза в колбе", cost:3500, weight:6},
+      {id:"g_ring",   iconKey:"ring",  name:"Кольцо",       cost:3900, weight:4},
+    ]
+  },
+  {
+    id: "case_40",
+    iconKey: "caseHeart",
+    name: "Кейс за 40⭐",
+    price: 40,
+    gifts: [
+      {id:"g_bear",  iconKey:"bear",  name:"Мишка",        cost:5500, weight:6},
+      {id:"g_ring2", iconKey:"ring",  name:"Кольцо",       cost:3900, weight:10},
+      {id:"g_rose2", iconKey:"rose",  name:"Роза в колбе", cost:3500, weight:10},
+      {id:"g_shoe2", iconKey:"shoe",  name:"Туфли",        cost:1750, weight:18},
+      {id:"g_flwr3", iconKey:"flower",name:"Цветок",       cost:1280, weight:22},
+      {id:"g_lolli2",iconKey:"lolli", name:"Леденец",      cost:560,  weight:26},
+    ]
+  }
+];
 
 /* ==========================
    STATE
@@ -724,6 +1059,15 @@ let isSpinning = false;
 let pendingGift = null;
 
 /* ==========================
+   ICON RENDER
+========================== */
+function renderIcon(key, fallbackText="🎁"){
+  const svg = ICONS[key];
+  if (svg) return svg;
+  return `<span style="font-size:28px">${escapeHtml(fallbackText)}</span>`;
+}
+
+/* ==========================
    INIT USER
 ========================== */
 function initUser(){
@@ -743,8 +1087,9 @@ function initUser(){
     els.avatarFallback.textContent = (displayName.replace("@","").slice(0,2) || "EG").toUpperCase();
   }
 
-  // header title with nick
-  els.headerTitle.textContent = `Easy Gift — Mini App • ${displayName}`;
+  // ✅ ВМЕСТО "Easy Gift — Mini App" -> ТОЛЬКО НИК / ИМЯ
+  els.headerTitle.textContent = displayName;
+
   els.userName.textContent = `${name} ${nick}`.trim();
 
   // admin UI
@@ -762,9 +1107,32 @@ function initUser(){
 /* ==========================
    STORAGE
 ========================== */
+function saveBalance(){ localStorage.setItem(kBalance(), String(stars)); }
+function saveEarned(){ localStorage.setItem(kEarned(), String(earned)); }
+function saveInventory(){ localStorage.setItem(kInv(), JSON.stringify(inventory)); }
+
+function updateStarsUI(){ els.stars.textContent = String(stars); }
+function updateHeaderEarned(){
+  els.subTitle.textContent = `${getDisplayName()} • ${earned} ⭐ заработано`;
+}
+function addEarned(n){
+  const x = Number(n)||0;
+  if (x <= 0) return;
+  earned += x;
+  saveEarned();
+  updateHeaderEarned();
+}
+
 function loadAll(){
   const savedBal = Number(localStorage.getItem(kBalance()));
-  stars = Number.isFinite(savedBal) ? savedBal : 1; // ✅ у всех старт 1⭐
+
+  // ✅ всем минимум 1⭐ (чтобы "зашёл звезду не дали" не было)
+  if (Number.isFinite(savedBal)) {
+    stars = IS_ADMIN ? savedBal : Math.max(1, savedBal);
+  } else {
+    stars = 1;
+    localStorage.setItem(kBalance(), "1");
+  }
 
   const savedEarned = Number(localStorage.getItem(kEarned()));
   earned = Number.isFinite(savedEarned) ? savedEarned : 0;
@@ -775,27 +1143,9 @@ function loadAll(){
   updateStarsUI();
   updateHeaderEarned();
 }
-function saveBalance(){ localStorage.setItem(kBalance(), String(stars)); }
-function saveEarned(){ localStorage.setItem(kEarned(), String(earned)); }
-function saveInventory(){ localStorage.setItem(kInv(), JSON.stringify(inventory)); }
-function addEarned(n){
-  const x = Number(n)||0;
-  if (x <= 0) return;
-  earned += x;
-  saveEarned();
-  updateHeaderEarned();
-}
-function updateStarsUI(){ els.stars.textContent = String(stars); }
-function getDisplayName(){
-  const name = [USER.first_name, USER.last_name].filter(Boolean).join(" ").trim() || "Пользователь";
-  return USER.username || name;
-}
-function updateHeaderEarned(){
-  els.subTitle.textContent = `${getDisplayName()} • ${earned} ⭐ заработано`;
-}
 
 /* ==========================
-   TABS
+   TABS + bottom nav
 ========================== */
 function setTab(name){
   document.querySelectorAll(".tab").forEach(t=>{
@@ -808,8 +1158,6 @@ function setTab(name){
 document.querySelectorAll(".tab").forEach(t=>{
   t.addEventListener("click", ()=> setTab(t.dataset.tab));
 });
-
-/* bottom nav */
 document.querySelectorAll(".bottomNav .navItem[data-go]").forEach(btn=>{
   btn.addEventListener("click", ()=>{
     const go = btn.getAttribute("data-go");
@@ -841,7 +1189,7 @@ function buildTrack(baseGifts){
 
   els.track.innerHTML = items.map(g => `
     <div class="item">
-      <div class="itemEmoji">${escapeHtml(g.emoji)}</div>
+      <div class="itemEmoji">${renderIcon(g.iconKey)}</div>
       <div class="itemName">${escapeHtml(g.name)}</div>
       <div class="itemCost">
         <img class="starImg" src="img/Star.png" alt="⭐" onerror="this.style.display='none'">
@@ -893,7 +1241,7 @@ function getCooldownLeftMs(){
   return Math.max(0, left);
 }
 function canSpinNow(){
-  if (IS_ADMIN) return true; // ✅ бесконечный ролл
+  if (IS_ADMIN) return true; // ✅ @RealZanT бесконечный ролл
   return getCooldownLeftMs() <= 0;
 }
 function updateCooldownUI(){
@@ -919,7 +1267,7 @@ setInterval(updateCooldownUI, 500);
 function renderCases(){
   els.casesRow.innerHTML = CASES.map(c => `
     <div class="caseCard ${c.id === activeCase.id ? "active" : ""}" data-id="${c.id}">
-      <div class="caseArt">${escapeHtml(c.icon)}</div>
+      <div class="caseArt">${renderIcon(c.iconKey)}</div>
       <div class="caseInfo">
         <div class="caseName">${escapeHtml(c.name)}</div>
         <div class="priceLine">
@@ -962,7 +1310,7 @@ function openModal(gift, caseObj){
   pendingGift = { gift, caseObj };
 
   const sellValue = Math.max(1, Math.floor((gift.cost || 0) * SELL_RATE));
-  els.modalEmoji.textContent = gift.emoji || "🎁";
+  els.modalEmoji.innerHTML = renderIcon(gift.iconKey);
   els.modalName.textContent = gift.name || "Подарок";
   els.modalInfo.textContent = `Из кейса: ${caseObj.name} • Продажа: ${Math.round(SELL_RATE*100)}% от стоимости`;
   els.modalCost.textContent = String(gift.cost || 0);
@@ -986,7 +1334,7 @@ function addToInventory(gift, caseObj){
   const item = {
     uid: "inv_" + Math.random().toString(16).slice(2) + "_" + Date.now(),
     giftId: gift.id || "",
-    emoji: gift.emoji || "🎁",
+    iconKey: gift.iconKey || "",
     name: gift.name || "Подарок",
     cost: Number(gift.cost || 0),
     fromCase: caseObj.name || "",
@@ -1009,7 +1357,7 @@ function renderInventory(){
       ${inventory.map(it => `
         <div class="invItem" data-uid="${escapeHtml(it.uid)}">
           <div class="invLeft">
-            <div class="miniEmoji">${escapeHtml(it.emoji)}</div>
+            <div class="miniEmoji">${renderIcon(it.iconKey)}</div>
             <div style="min-width:0;">
               <div class="invName">${escapeHtml(it.name)}</div>
               <div class="invMeta">Из: ${escapeHtml(it.fromCase)} • ${new Date(it.ts).toLocaleString()}</div>
@@ -1042,10 +1390,10 @@ function renderInventory(){
 
       inventory.splice(idx, 1);
       saveInventory();
+
       stars += gain;
       saveBalance();
       updateStarsUI();
-
       addEarned(gain);
 
       renderInventory();
@@ -1114,26 +1462,23 @@ async function spin({demo=false} = {}){
 
   els.track.style.transform = `translateX(${targetTranslate}px)`;
 
-  els.resultText.textContent = `${picked.gift.emoji} ${picked.gift.name}`;
+  els.resultText.textContent = `${picked.gift.name}`;
   els.resultMeta.textContent = demo ? "демо" : (adminFree ? "админ" : "спин");
 
   if (!demo && !adminFree){
     setLastSpinMs(nowMs());
     updateCooldownUI();
   } else {
-    // админ / демо — просто обновим badge
     updateCooldownUI();
   }
 
-  // ✅ если выпали звёзды — сразу начисляем
+  // ✅ если выпали звёзды — сразу начисляем (2⭐ и т.д.)
   if (!demo && picked.gift && picked.gift.isStars){
     const gain = Math.max(1, Number(picked.gift.cost || 0));
     stars += gain;
     saveBalance();
     updateStarsUI();
-
     addEarned(gain);
-
     alert(`Выигрыш: +${gain} ⭐`);
   } else if (!demo) {
     openModal(picked.gift, activeCase);
@@ -1147,7 +1492,7 @@ async function spin({demo=false} = {}){
 els.spinBtn.addEventListener("click", ()=> spin({demo:false}));
 els.demoBtn.addEventListener("click", ()=> spin({demo:true}));
 
-// admin + button
+// admin +
 els.addStarsBtn.addEventListener("click", ()=>{
   if (!IS_ADMIN){
     alert("Пополнение недоступно.");
@@ -1175,9 +1520,7 @@ els.sellBtn.addEventListener("click", ()=>{
   stars += gain;
   saveBalance();
   updateStarsUI();
-
   addEarned(gain);
-
   closeModal();
   alert(`Продано: +${gain} ⭐`);
 });
